@@ -162,7 +162,7 @@ const UIManager = {
                 <div class="value">${dailyReports}</div>
             </div>
             <div class="podcast-player-inline">
-                <div class="podcast-arrow-inline"></div>
+                <div class="podcast-label-inline">📻 Timeline Podcast</div>
                 <audio id="timelinePodcast" controls preload="metadata">
                     <source src="podcast.m4a" type="audio/mp4">
                 </audio>

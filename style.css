@@ -107,21 +107,21 @@ body {
 .podcast-player-inline {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 8px;
+    gap: 8px;
+    padding: 6px 12px;
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Small arrow pointing from Daily Reports */
-.podcast-arrow-inline {
-    width: 0;
-    height: 0;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-left: 8px solid rgba(255, 255, 255, 0.3);
-    margin-right: 2px;
+/* Label for podcast player */
+.podcast-label-inline {
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
 }
 
 /* Compact but usable audio player */
@@ -136,7 +136,7 @@ body {
 }
 
 .podcast-player-inline audio::-webkit-media-controls-panel {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 4px;
 }
 
@@ -146,12 +146,12 @@ body {
     display: none !important;
 }
 
-/* White controls for visibility on green background */
+/* Dark controls for visibility on light panel background */
 .podcast-player-inline audio::-webkit-media-controls-play-button,
 .podcast-player-inline audio::-webkit-media-controls-timeline,
 .podcast-player-inline audio::-webkit-media-controls-current-time-display,
 .podcast-player-inline audio::-webkit-media-controls-time-remaining-display {
-    filter: brightness(0) invert(1); /* White controls */
+    filter: brightness(0); /* Dark/black controls */
 }
 
 /* Main Layout - Fixed right side panel */
