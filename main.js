@@ -62,6 +62,14 @@ const App = {
             } else {
                 mainContainer.classList.remove('feed-closed');
             }
+
+            // Update map size and redraw selection line after transition
+            setTimeout(() => {
+                if (MapManager.map) {
+                    MapManager.map.invalidateSize();
+                    MapManager.updateSelectionLine();
+                }
+            }, 350); // Wait for CSS transition to complete
         });
 
         // Feed close button
@@ -73,6 +81,14 @@ const App = {
             panel.classList.add('closed');
             btn.classList.remove('feed-active');
             mainContainer.classList.add('feed-closed');
+
+            // Update map size and redraw selection line after transition
+            setTimeout(() => {
+                if (MapManager.map) {
+                    MapManager.map.invalidateSize();
+                    MapManager.updateSelectionLine();
+                }
+            }, 350); // Wait for CSS transition to complete
         });
 
         // Quick filter for recent events
@@ -145,16 +161,47 @@ const App = {
         // Auto-format date inputs as DD/MM/YYYY
         const manualStartDate = document.getElementById('manualStartDate');
         const manualEndDate = document.getElementById('manualEndDate');
-        
+
         if (manualStartDate) {
             manualStartDate.addEventListener('input', (e) => {
                 e.target.value = this.formatDateInput(e.target.value);
             });
         }
-        
+
         if (manualEndDate) {
             manualEndDate.addEventListener('input', (e) => {
                 e.target.value = this.formatDateInput(e.target.value);
+            });
+        }
+
+        // Timeline toggle button
+        const timelineToggleBtn = document.getElementById('timelineToggleBtn');
+        if (timelineToggleBtn) {
+            timelineToggleBtn.addEventListener('click', () => {
+                const container = document.getElementById('timeSliderContainer');
+                const mapContainer = document.querySelector('.map-container');
+                const sidePanel = document.querySelector('.side-panel');
+                const isCollapsed = container.classList.contains('collapsed');
+
+                if (isCollapsed) {
+                    container.classList.remove('collapsed');
+                    mapContainer.classList.remove('timeline-hidden');
+                    sidePanel.classList.remove('timeline-hidden');
+                    timelineToggleBtn.textContent = 'Hide Timeline';
+                } else {
+                    container.classList.add('collapsed');
+                    mapContainer.classList.add('timeline-hidden');
+                    sidePanel.classList.add('timeline-hidden');
+                    timelineToggleBtn.textContent = 'Show Timeline';
+                }
+
+                // Update map size after transition
+                setTimeout(() => {
+                    if (MapManager.map) {
+                        MapManager.map.invalidateSize();
+                        MapManager.updateSelectionLine();
+                    }
+                }, 350);
             });
         }
     },
@@ -214,7 +261,7 @@ const App = {
         console.log('📂 Loading events from CSV...');
         document.getElementById('stats').innerHTML = `
             <div style="background: #667eea; color: white; padding: 20px; border-radius: 10px; width: 100%;">
-                <strong>⏳ Loading data...</strong>
+                <strong>⏳ Loading data... (Large file, please wait)</strong>
             </div>
         `;
 
@@ -222,20 +269,45 @@ const App = {
             download: true,
             header: true,
             skipEmptyLines: true,
+            worker: false, // Disable worker for better error reporting
             complete: (results) => {
+                console.log('📊 CSV parsing complete. Rows:', results.data.length);
+                console.log('📊 Errors:', results.errors.length);
+
+                if (results.errors.length > 0) {
+                    console.warn('⚠️ CSV parsing warnings:', results.errors.slice(0, 5));
+                }
+
                 if (results.data && results.data.length > 0) {
-                    this.state.allEvents = this.processEvents(results.data);
-                    this.state.filteredEvents = this.state.allEvents;
-                    this.initTimeSlider();
-                    this.render();
-                    this.loadDailyReports();
-                    console.log('✅ Events loaded:', this.state.allEvents.length);
+                    console.log('🔄 Processing events...');
+                    document.getElementById('stats').innerHTML = `
+                        <div style="background: #667eea; color: white; padding: 20px; border-radius: 10px; width: 100%;">
+                            <strong>⏳ Processing ${results.data.length} events...</strong>
+                        </div>
+                    `;
+
+                    // Process in chunks to avoid blocking UI
+                    setTimeout(() => {
+                        try {
+                            this.state.allEvents = this.processEvents(results.data);
+                            this.state.filteredEvents = this.state.allEvents;
+                            console.log('✅ Events processed:', this.state.allEvents.length);
+
+                            this.initTimeSlider();
+                            this.render();
+                            this.loadDailyReports();
+                            console.log('✅ Rendering complete!');
+                        } catch (error) {
+                            console.error('❌ Error processing events:', error);
+                            this.showError('Failed to process events: ' + error.message);
+                        }
+                    }, 100);
                 } else {
                     this.showError('CSV file is empty or invalid');
                 }
             },
             error: (error) => {
-                console.error('CSV error:', error);
+                console.error('❌ CSV error:', error);
                 this.showError('Failed to load CSV: ' + error.message);
             }
         });
@@ -245,17 +317,16 @@ const App = {
         return data.map((row, index) => {
             const event = { ...row };
 
-            // Ensure event has an ID - use event_id or generate from other fields
+            // Ensure event has an ID - use message_url or generate simple numeric ID
             if (!event.event_id || event.event_id === '') {
-                // Try alternative ID fields first
-                if (event.id) {
-                    event.event_id = event.id;
-                } else if (event.message_id) {
-                    event.event_id = event.message_id;
-                } else {
-                    // Generate unique ID from event data
-                    const idSource = `${event.event_date || ''}_${event.event_name || ''}_${event.event_lat || ''}_${event.event_lng || ''}_${index}`;
-                    event.event_id = btoa(idSource).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+                // Use message_url as unique ID (extract last part after /)
+                if (event.message_url && event.message_url.includes('/')) {
+                    const parts = event.message_url.split('/');
+                    event.event_id = 'msg_' + parts[parts.length - 1];
+                }
+                // Fallback to simple index-based ID
+                else {
+                    event.event_id = 'event_' + String(index).padStart(6, '0');
                 }
             }
 
