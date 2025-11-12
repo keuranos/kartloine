@@ -382,19 +382,20 @@ const UIManager = {
             alert('No report found for this date');
             return;
         }
-        
+
         const report = reports[0];
         App.state.currentReport = report;
-        
+        App.state.currentReport.date = date; // Store the date for filtering
+
         document.getElementById('reportsDayList').style.display = 'none';
         document.getElementById('reportsActions').style.display = 'flex';
-        
+
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
-        
+
         // Format the report text (preserve line breaks and basic formatting)
         let formattedContent = report.content || 'No content available';
-        
+
         // Convert markdown-style formatting to HTML
         formattedContent = formattedContent
             .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>') // Bold + italic
@@ -405,9 +406,20 @@ const UIManager = {
             .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>') // Headers level 3
             .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>') // Headers level 2
             .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>'); // Headers level 1
-        
+
+        // Convert markdown tables to HTML tables
+        const tableRegex = /\|(.+)\|\n\|[\-\s\|]+\|\n((?:\|.+\|\n?)+)/g;
+        formattedContent = formattedContent.replace(tableRegex, (match, header, rows) => {
+            const headers = header.split('|').filter(h => h.trim()).map(h => `<th>${h.trim()}</th>`).join('');
+            const rowsHtml = rows.trim().split('\n').map(row => {
+                const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+            return `<table><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+        });
+
         content.innerHTML = `
-            <h3 style="color: #667eea; margin-bottom: 15px;">📅 Daily Report: ${date}</h3>
+            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 16px;">📅 Daily Report: ${date}</h3>
             <div class="report-text" style="
                 line-height: 1.6;
                 color: #333;
@@ -679,12 +691,29 @@ window.backToReportsList = () => {
     document.getElementById('reportsActions').style.display = 'none';
 };
 window.showReportEvents = () => {
-    if (App.state.currentReport && App.state.currentReport.eventIds) {
-        App.state.filteredEvents = App.state.allEvents.filter(e => 
-            App.state.currentReport.eventIds.includes(e.event_id)
-        );
+    if (App.state.currentReport && App.state.currentReport.date) {
+        const reportDate = App.state.currentReport.date;
+        console.log('📅 Filtering events for date:', reportDate);
+
+        // Filter events by the report date
+        App.state.filteredEvents = App.state.allEvents.filter(e => {
+            // Match events with event_date equal to report date
+            // Also match message_date in case event_date is not set
+            return e.event_date === reportDate ||
+                   (e.message_date && e.message_date.startsWith(reportDate));
+        });
+
+        console.log('✅ Found', App.state.filteredEvents.length, 'events for', reportDate);
+
+        if (App.state.filteredEvents.length === 0) {
+            alert(`No events found for ${reportDate}`);
+            return;
+        }
+
         App.render();
         UIManager.closeModal('reportsModal');
+    } else {
+        alert('No report date available');
     }
 };
 window.clearFavorites = () => {

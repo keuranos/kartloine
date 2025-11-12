@@ -885,10 +885,10 @@ body.feed-closed .bottom-filter-panel {
 .modal-content {
     background: white;
     border-radius: 15px;
-    padding: 30px;
-    max-width: 700px;
+    padding: 25px; /* Reduced from 30px */
+    max-width: 800px; /* Increased from 700px for reports */
     width: 90%;
-    max-height: 80vh;
+    max-height: 85vh; /* Increased from 80vh */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1042,47 +1042,78 @@ body.feed-closed .bottom-filter-panel {
     transform: translateY(-2px);
 }
 
-/* Report Content Styling */
+/* Report Content Styling - Completely Redesigned */
 .report-content {
-    padding: 25px;
+    padding: 20px;
     background: white;
     border-radius: 10px;
-    line-height: 1.8;
-    font-size: 15px;
+    line-height: 1.7;
+    font-size: 13px; /* Reduced from 15px */
     color: #333;
     max-height: 500px;
     overflow-y: auto;
 }
 
+.report-content h1 {
+    color: #667eea;
+    font-size: 16px; /* Reduced from default */
+    margin: 20px 0 10px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 6px;
+}
+
 .report-content h2 {
     color: #764ba2;
-    font-size: 20px;
-    margin: 25px 0 15px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 8px;
+    font-size: 15px; /* Reduced from 20px */
+    margin: 18px 0 10px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 5px;
 }
 
 .report-content h3 {
     color: #667eea;
-    font-size: 18px;
-    margin: 20px 0 10px;
+    font-size: 14px; /* Reduced from 18px */
+    margin: 15px 0 8px;
 }
 
 .report-content strong {
     color: #667eea;
-    font-weight: 700;
+    font-weight: 600; /* Reduced from 700 */
 }
 
 .report-content ul {
-    margin: 15px 0 15px 20px;
+    margin: 10px 0 10px 20px;
 }
 
 .report-content li {
-    margin: 8px 0;
+    margin: 6px 0;
+    line-height: 1.6;
 }
 
 .report-content p {
+    margin: 10px 0;
+    line-height: 1.7;
+}
+
+.report-content table {
+    width: 100%;
+    border-collapse: collapse;
     margin: 15px 0;
+    font-size: 12px;
+}
+
+.report-content table th {
+    background: #f0f0f0;
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #ddd;
+}
+
+.report-content table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    vertical-align: top;
 }
 
 /* Network Graph Container */
