@@ -72,10 +72,27 @@ const UIManager = {
     },
 
     shareEvent: function(eventId) {
-        const url = window.location.origin + window.location.pathname + '?event=' + eventId;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('Link copied to clipboard!');
-        });
+        if (!eventId || eventId === 'undefined') {
+            console.error('Cannot share event: invalid event ID');
+            alert('Unable to share this event. Event ID is missing.');
+            return;
+        }
+
+        const url = `${window.location.origin}${window.location.pathname}?event=${eventId}`;
+
+        // Try to copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Link copied to clipboard!\n\n' + url);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback: show the URL in a prompt
+                prompt('Copy this link:', url);
+            });
+        } else {
+            // Fallback for browsers without clipboard API
+            prompt('Copy this link:', url);
+        }
     },
 
     toggleFavorite: function(eventId) {
@@ -552,31 +569,31 @@ const UIManager = {
 
     showOnMap: function(eventId) {
         console.log('🗺️ showOnMap called with eventId:', eventId);
-        
+
         // Find event in filtered or all events
         let event = App.state.filteredEvents.find(e => e.event_id === eventId);
         if (!event) {
             console.log('Event not in filtered, searching all events...');
             event = App.state.allEvents.find(e => e.event_id === eventId);
         }
-        
+
         if (!event) {
             console.error('❌ Event not found:', eventId);
-            alert('Event not found on map. It may have been filtered out.');
+            alert('Event not found. The event ID may be invalid.');
             return;
         }
-        
+
         console.log('✅ Event found:', event.event_name);
-        
+
         // Check if event has coordinates
         if (!event.event_lat || !event.event_lng) {
             console.error('❌ Event has no coordinates');
             alert('This event has no location data.');
             return;
         }
-        
+
         console.log('📍 Event coordinates:', event.event_lat, event.event_lng);
-        
+
         // Update feed UI
         document.querySelectorAll('.feed-item').forEach(item => {
             item.classList.remove('active');
@@ -586,29 +603,43 @@ const UIManager = {
             feedItem.classList.add('active');
             console.log('✅ Feed item highlighted');
         }
-        
-        // Get marker
-        const marker = MapManager.eventMarkers[eventId];
+
+        // Get marker - if not found, we need to ensure event is added to filtered
+        let marker = MapManager.eventMarkers[eventId];
         if (!marker) {
-            console.error('❌ Marker not found for event:', eventId);
-            console.log('Available markers:', Object.keys(MapManager.eventMarkers).length);
-            alert('Marker not found on map. Try refreshing the page.');
-            return;
+            console.log('⚠️ Marker not found, event may be filtered out. Adding to filtered events...');
+
+            // Temporarily add event to filtered events if not already there
+            if (!App.state.filteredEvents.includes(event)) {
+                App.state.filteredEvents.push(event);
+                // Re-render map to create the marker
+                MapManager.render(App.state.filteredEvents, (e, latLng) => {
+                    App.onMarkerClick(e, latLng);
+                }, App.state);
+            }
+
+            // Try to get marker again
+            marker = MapManager.eventMarkers[eventId];
+            if (!marker) {
+                console.error('❌ Failed to create marker for event');
+                alert('Unable to show event on map. Please try again.');
+                return;
+            }
         }
-        
+
         console.log('✅ Marker found, centering map...');
         const latLng = marker.getLatLng();
-        
+
         // Center map with animation
         MapManager.map.setView(latLng, 12, {
             animate: true,
             duration: 1
         });
-        
+
         console.log('✅ Triggering marker click...');
         // Trigger marker click which draws line and shows details
         App.onMarkerClick(event, latLng);
-        
+
         console.log('✅ showOnMap complete!');
     },
 
