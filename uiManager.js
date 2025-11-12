@@ -189,7 +189,7 @@ const UIManager = {
                 <div id="podcastPlayerContainer" class="podcast-player-container">
                     <div class="podcast-arrow"></div>
                     <div class="podcast-player">
-                        <div class="podcast-label">📻 Event Podcast</div>
+                        <div class="podcast-label">📻 Timeline Podcast</div>
                         <audio controls preload="metadata">
                             <source src="podcast.m4a" type="audio/mp4">
                             Your browser does not support the audio element.

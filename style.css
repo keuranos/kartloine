@@ -17,14 +17,14 @@ body {
 }
 
 .header {
-    background: rgba(255, 255, 255, 0.05); /* 95% transparent */
+    background: transparent; /* Fully transparent */
     padding: 10px 15px; /* Reduced from 15px 20px */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: none; /* Remove shadow for fully transparent look */
     z-index: 1000;
     position: fixed;
     top: 0;
     left: 0; /* Always full width */
-    right: 0;
+    right: 360px; /* Stop before sidebar */
     backdrop-filter: blur(10px); /* Add blur for better readability */
 }
 
@@ -155,7 +155,7 @@ body {
 .podcast-player audio::-webkit-media-controls-timeline,
 .podcast-player audio::-webkit-media-controls-current-time-display,
 .podcast-player audio::-webkit-media-controls-time-remaining-display {
-    filter: brightness(0) invert(1);
+    filter: brightness(0); /* Black controls for better visibility */
 }
 
 /* Main Layout - Fixed right side panel */
@@ -227,14 +227,10 @@ body {
     z-index: 900; /* Below header (1000) but above map */
     position: fixed;
     right: 0;
-    top: 95px; /* Start below header */
+    top: 0; /* Start at top - header no longer overlaps */
     bottom: 0;
-    height: auto; /* Let it fill from top to bottom */
+    height: 100vh; /* Full height */
     transition: top 0.3s ease;
-}
-
-.side-panel.timeline-hidden {
-    top: 60px; /* Less space when timeline is hidden */
 }
 
 .side-panel.empty {
