@@ -382,19 +382,20 @@ const UIManager = {
             alert('No report found for this date');
             return;
         }
-        
+
         const report = reports[0];
         App.state.currentReport = report;
-        
+        App.state.currentReport.date = date; // Store the date for filtering
+
         document.getElementById('reportsDayList').style.display = 'none';
         document.getElementById('reportsActions').style.display = 'flex';
-        
+
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
-        
+
         // Format the report text (preserve line breaks and basic formatting)
         let formattedContent = report.content || 'No content available';
-        
+
         // Convert markdown-style formatting to HTML
         formattedContent = formattedContent
             .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>') // Bold + italic
@@ -405,9 +406,20 @@ const UIManager = {
             .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>') // Headers level 3
             .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>') // Headers level 2
             .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>'); // Headers level 1
-        
+
+        // Convert markdown tables to HTML tables
+        const tableRegex = /\|(.+)\|\n\|[\-\s\|]+\|\n((?:\|.+\|\n?)+)/g;
+        formattedContent = formattedContent.replace(tableRegex, (match, header, rows) => {
+            const headers = header.split('|').filter(h => h.trim()).map(h => `<th>${h.trim()}</th>`).join('');
+            const rowsHtml = rows.trim().split('\n').map(row => {
+                const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+                return `<tr>${cells}</tr>`;
+            }).join('');
+            return `<table><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+        });
+
         content.innerHTML = `
-            <h3 style="color: #667eea; margin-bottom: 15px;">📅 Daily Report: ${date}</h3>
+            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 16px;">📅 Daily Report: ${date}</h3>
             <div class="report-text" style="
                 line-height: 1.6;
                 color: #333;
@@ -493,14 +505,14 @@ const UIManager = {
 
     populateFeed: function(events) {
         console.log('populateFeed called with', events ? events.length : 0, 'events');
-        
+
         const feedContent = document.getElementById('feedContent');
-        
+
         if (!feedContent) {
             console.error('Feed content element not found!');
             return;
         }
-        
+
         if (!events || events.length === 0) {
             console.log('No events to display in feed');
             feedContent.innerHTML = `
@@ -512,21 +524,21 @@ const UIManager = {
             `;
             return;
         }
-        
+
         // Sort events by message_date or event_date (newest first)
         const sortedEvents = [...events].sort((a, b) => {
             const dateA = a.message_date || a.event_date || '';
             const dateB = b.message_date || b.event_date || '';
             return dateB.localeCompare(dateA);
         });
-        
+
         console.log('Rendering', sortedEvents.length, 'events in feed');
-        
+
         feedContent.innerHTML = sortedEvents.map(event => {
             // Use translated_text (English) instead of message_text
             const messageText = event.translated_text || event.event_description || event.message_text || 'No message text available';
             const messageDate = event.message_date || event.event_date || 'N/A';
-            
+
             // Format time if available (HH:MM:SS)
             let displayDate = messageDate;
             if (messageDate && messageDate.includes(' ')) {
@@ -535,7 +547,11 @@ const UIManager = {
                 const [hours, minutes] = time.split(':');
                 displayDate = `${date} ${hours}:${minutes}`;
             }
-            
+
+            // Truncate for preview
+            const isTruncated = messageText.length > 200;
+            const previewText = isTruncated ? messageText.substring(0, 200) + '...' : messageText;
+
             return `
             <div class="feed-item" id="feed-${event.event_id}">
                 <div class="feed-item-date">
@@ -545,7 +561,13 @@ const UIManager = {
                     ${event.event_name || 'Unnamed Event'}
                 </div>
                 <div class="feed-item-description">
-                    ${messageText.substring(0, 200)}${messageText.length > 200 ? '...' : ''}
+                    <span class="feed-text-preview" id="preview-${event.event_id}">${previewText}</span>
+                    <span class="feed-text-full" id="full-${event.event_id}" style="display: none;">${messageText}</span>
+                    ${isTruncated ? `
+                        <button class="feed-expand-btn" onclick="UIManager.toggleFeedText('${event.event_id}'); event.stopPropagation();">
+                            <span id="expand-icon-${event.event_id}">▼</span> <span id="expand-text-${event.event_id}">More</span>
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="feed-item-location">
                     📍 ${event.event_location || 'Unknown location'}
@@ -563,8 +585,33 @@ const UIManager = {
             </div>
         `;
         }).join('');
-        
+
         console.log('Feed populated successfully');
+    },
+
+    toggleFeedText: function(eventId) {
+        const preview = document.getElementById(`preview-${eventId}`);
+        const full = document.getElementById(`full-${eventId}`);
+        const icon = document.getElementById(`expand-icon-${eventId}`);
+        const text = document.getElementById(`expand-text-${eventId}`);
+
+        if (preview && full && icon && text) {
+            const isExpanded = full.style.display !== 'none';
+
+            if (isExpanded) {
+                // Collapse
+                preview.style.display = 'inline';
+                full.style.display = 'none';
+                icon.textContent = '▼';
+                text.textContent = 'More';
+            } else {
+                // Expand
+                preview.style.display = 'none';
+                full.style.display = 'inline';
+                icon.textContent = '▲';
+                text.textContent = 'Less';
+            }
+        }
     },
 
     showOnMap: function(eventId) {
@@ -650,14 +697,28 @@ const UIManager = {
     },
 
     updateFeedActiveItem: function(eventId) {
+        // Remove active class and flash animation from all items
         document.querySelectorAll('.feed-item').forEach(item => {
-            item.classList.remove('active');
+            item.classList.remove('active', 'flash');
         });
+
         const feedItem = document.getElementById(`feed-${eventId}`);
         if (feedItem) {
+            // Add active class
             feedItem.classList.add('active');
+
             // Scroll to active item
             feedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Add flash animation after a short delay (so scroll completes first)
+            setTimeout(() => {
+                feedItem.classList.add('flash');
+
+                // Remove flash class after animation completes
+                setTimeout(() => {
+                    feedItem.classList.remove('flash');
+                }, 1500); // Match animation duration
+            }, 500); // Wait for scroll to mostly complete
         }
     }
 };
@@ -679,12 +740,29 @@ window.backToReportsList = () => {
     document.getElementById('reportsActions').style.display = 'none';
 };
 window.showReportEvents = () => {
-    if (App.state.currentReport && App.state.currentReport.eventIds) {
-        App.state.filteredEvents = App.state.allEvents.filter(e => 
-            App.state.currentReport.eventIds.includes(e.event_id)
-        );
+    if (App.state.currentReport && App.state.currentReport.date) {
+        const reportDate = App.state.currentReport.date;
+        console.log('📅 Filtering events for date:', reportDate);
+
+        // Filter events by the report date
+        App.state.filteredEvents = App.state.allEvents.filter(e => {
+            // Match events with event_date equal to report date
+            // Also match message_date in case event_date is not set
+            return e.event_date === reportDate ||
+                   (e.message_date && e.message_date.startsWith(reportDate));
+        });
+
+        console.log('✅ Found', App.state.filteredEvents.length, 'events for', reportDate);
+
+        if (App.state.filteredEvents.length === 0) {
+            alert(`No events found for ${reportDate}`);
+            return;
+        }
+
         App.render();
         UIManager.closeModal('reportsModal');
+    } else {
+        alert('No report date available');
     }
 };
 window.clearFavorites = () => {

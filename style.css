@@ -108,6 +108,20 @@ body {
     background: #e8eaf0;
 }
 
+/* Leaflet zoom controls positioning */
+.leaflet-top.leaflet-left {
+    top: 105px !important; /* Below header when timeline is hidden */
+    transition: top 0.3s ease;
+}
+
+.map-container:not(.timeline-hidden) .leaflet-top.leaflet-left {
+    top: 105px !important; /* Below header + timeline */
+}
+
+.map-container.timeline-hidden .leaflet-top.leaflet-left {
+    top: 70px !important; /* Below smaller header when timeline hidden */
+}
+
 .map-container {
     flex: 1;
     position: relative;
@@ -146,15 +160,17 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    z-index: 500;
-    position: relative;
-    padding-top: 95px; /* Reduced from 125px */
-    height: 100vh;
-    transition: padding-top 0.3s ease;
+    z-index: 900; /* Below header (1000) but above map */
+    position: fixed;
+    right: 0;
+    top: 95px; /* Start below header */
+    bottom: 0;
+    height: auto; /* Let it fill from top to bottom */
+    transition: top 0.3s ease;
 }
 
 .side-panel.timeline-hidden {
-    padding-top: 60px;
+    top: 60px; /* Less space when timeline is hidden */
 }
 
 .side-panel.empty {
@@ -170,9 +186,9 @@ body {
 /* Connection Point for Line */
 .side-panel::before {
     content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
+    position: fixed; /* Changed from absolute to fixed */
+    left: calc(100vw - 360px); /* Position at left edge of side panel */
+    top: 50vh; /* Always at vertical center of viewport */
     width: 20px;
     height: 20px;
     background: #667eea;
@@ -180,8 +196,12 @@ body {
     transform: translate(-10px, -10px);
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.3);
     opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1000;
+    transition: opacity 0.3s, left 0.3s ease;
+    z-index: 1100; /* Above everything including header */
+}
+
+.main-container.feed-closed .side-panel::before {
+    left: calc(100vw - 360px); /* Stay in same position when feed closes */
 }
 
 .side-panel.has-connection::before {
@@ -296,8 +316,35 @@ body {
 
 .feed-item.active {
     border-left-color: #667eea;
-    background: #2d3045;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    background: #3a3d52; /* Brighter background */
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    transform: translateX(5px);
+}
+
+/* Flash animation when feed item is selected from map */
+@keyframes feedFlash {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        border-left-color: #667eea;
+    }
+    25% {
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.9), 0 0 20px rgba(102, 126, 234, 0.6);
+        border-left-color: #43e97b;
+        transform: translateX(8px) scale(1.02);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        border-left-color: #667eea;
+    }
+    75% {
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.9), 0 0 20px rgba(102, 126, 234, 0.6);
+        border-left-color: #43e97b;
+        transform: translateX(8px) scale(1.02);
+    }
+}
+
+.feed-item.flash {
+    animation: feedFlash 1.5s ease-in-out;
 }
 
 .feed-item-date {
@@ -323,10 +370,37 @@ body {
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 10px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+}
+
+/* Expand/Collapse button for feed text */
+.feed-expand-btn {
+    background: none;
+    border: none;
+    color: #667eea;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-top: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.feed-expand-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    color: #43e97b;
+}
+
+.feed-expand-btn span {
+    font-size: 10px;
+}
+
+.feed-text-preview,
+.feed-text-full {
+    display: inline;
 }
 
 .feed-item-location {
@@ -403,7 +477,9 @@ body {
 
 /* Event Detail Panel */
 .event-detail {
-    padding: 15px; /* Reduced from 20px for better fit */
+    padding: 15px;
+    height: 100%; /* Fill the side panel */
+    overflow-y: auto;
 }
 
 .event-detail-header {
@@ -588,6 +664,11 @@ body.feed-closed .bottom-controls {
     border-color: #43e97b;
 }
 
+.ctrl-btn.active {
+    background: #667eea;
+    color: white;
+}
+
 /* Time Slider Container - Redesigned with Toggle */
 .time-slider-container {
     background: rgba(255, 255, 255, 0.95);
@@ -604,26 +685,6 @@ body.feed-closed .bottom-controls {
 
 .time-slider-container.collapsed {
     display: none;
-}
-
-.timeline-toggle-btn {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    z-index: 100;
-    transition: all 0.3s;
-}
-
-.timeline-toggle-btn:hover {
-    background: #5568d3;
 }
 
 .time-controls-row {
@@ -860,8 +921,9 @@ body.feed-closed .bottom-filter-panel {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.85); /* Darker backdrop */
     animation: fadeIn 0.3s;
+    overflow: hidden; /* Prevent page scrolling behind modal */
 }
 
 @keyframes fadeIn {
@@ -878,10 +940,10 @@ body.feed-closed .bottom-filter-panel {
 .modal-content {
     background: white;
     border-radius: 15px;
-    padding: 30px;
-    max-width: 700px;
+    padding: 25px; /* Reduced from 30px */
+    max-width: 800px; /* Increased from 700px for reports */
     width: 90%;
-    max-height: 80vh;
+    max-height: 85vh; /* Increased from 80vh */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1035,47 +1097,80 @@ body.feed-closed .bottom-filter-panel {
     transform: translateY(-2px);
 }
 
-/* Report Content Styling */
+/* Report Content Styling - Completely Redesigned */
 .report-content {
-    padding: 25px;
+    padding: 15px; /* Reduced from 20px */
     background: white;
     border-radius: 10px;
-    line-height: 1.8;
-    font-size: 15px;
+    line-height: 1.5; /* Reduced from 1.7 */
+    font-size: 12px; /* Reduced from 13px */
     color: #333;
     max-height: 500px;
     overflow-y: auto;
 }
 
+.report-content h1 {
+    color: #667eea;
+    font-size: 14px; /* Reduced from 16px */
+    margin: 15px 0 8px; /* Reduced margins */
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 5px;
+}
+
 .report-content h2 {
     color: #764ba2;
-    font-size: 20px;
-    margin: 25px 0 15px;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 8px;
+    font-size: 13px; /* Reduced from 15px */
+    margin: 12px 0 8px; /* Reduced margins */
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 4px;
 }
 
 .report-content h3 {
     color: #667eea;
-    font-size: 18px;
-    margin: 20px 0 10px;
+    font-size: 12px; /* Reduced from 14px */
+    margin: 10px 0 6px; /* Reduced margins */
 }
 
 .report-content strong {
     color: #667eea;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .report-content ul {
-    margin: 15px 0 15px 20px;
+    margin: 8px 0 8px 18px; /* Reduced margins and indentation */
 }
 
 .report-content li {
-    margin: 8px 0;
+    margin: 4px 0; /* Reduced from 6px */
+    line-height: 1.4;
 }
 
 .report-content p {
-    margin: 15px 0;
+    margin: 8px 0; /* Reduced from 10px */
+    line-height: 1.5;
+}
+
+.report-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0; /* Reduced from 15px */
+    font-size: 11px; /* Reduced from 12px */
+}
+
+.report-content table th {
+    background: #f0f0f0;
+    padding: 6px; /* Reduced from 8px */
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    font-size: 11px;
+}
+
+.report-content table td {
+    padding: 6px; /* Reduced from 8px */
+    border: 1px solid #ddd;
+    vertical-align: top;
+    font-size: 11px;
 }
 
 /* Network Graph Container */

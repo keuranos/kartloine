@@ -88,19 +88,29 @@ const MapManager = {
         if (this.selectionLine) {
             this.map.removeLayer(this.selectionLine);
         }
-        
-        const mapBounds = this.map.getBounds();
-        const rightEdge = mapBounds.getEast();
-        const center = mapBounds.getCenter();
-        const endPoint = [center.lat, rightEdge];
-        
-        this.selectionLine = L.polyline([markerLatLng, endPoint], {
+
+        // Calculate the actual screen position of the dot
+        // The dot is at: left: calc(100vw - 360px), top: 50vh
+        const viewportWidth = window.innerWidth;
+        const dotScreenX = viewportWidth - 360; // Left edge of side panel
+
+        // Convert screen position to map coordinates
+        const viewportHeight = window.innerHeight;
+        const dotScreenY = viewportHeight / 2; // 50vh
+
+        // Get the map's pixel origin
+        const dotLatLng = this.map.containerPointToLatLng([
+            dotScreenX - this.map.getContainer().getBoundingClientRect().left,
+            dotScreenY - this.map.getContainer().getBoundingClientRect().top
+        ]);
+
+        this.selectionLine = L.polyline([markerLatLng, dotLatLng], {
             color: '#667eea',
             weight: 4,
             dashArray: '10, 5',
             opacity: 0.9
         }).addTo(this.map);
-        
+
         // Add connection point class to side panel
         const sidePanel = document.getElementById('sidePanel');
         if (sidePanel) {
