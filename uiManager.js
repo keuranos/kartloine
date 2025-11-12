@@ -161,6 +161,12 @@ const UIManager = {
                 <div class="label">DAILY REPORTS</div>
                 <div class="value">${dailyReports}</div>
             </div>
+            <div class="podcast-player-inline">
+                <div class="podcast-arrow-inline"></div>
+                <audio id="timelinePodcast" controls preload="metadata">
+                    <source src="podcast.m4a" type="audio/mp4">
+                </audio>
+            </div>
             <div class="stat-card favorites" onclick="UIManager.openModal('favorites')">
                 <div class="label">FAVORITES</div>
                 <div class="value">${favoritesCount}</div>
@@ -180,25 +186,6 @@ const UIManager = {
         `;
 
         document.getElementById('stats').innerHTML = statsHtml;
-
-        // Add podcast player after stats
-        const statsContainer = document.getElementById('stats');
-        const existingPlayer = document.getElementById('podcastPlayerContainer');
-        if (!existingPlayer) {
-            const playerHTML = `
-                <div id="podcastPlayerContainer" class="podcast-player-container">
-                    <div class="podcast-arrow"></div>
-                    <div class="podcast-player">
-                        <div class="podcast-label">📻 Timeline Podcast</div>
-                        <audio controls preload="metadata">
-                            <source src="podcast.m4a" type="audio/mp4">
-                            Your browser does not support the audio element.
-                        </audio>
-                    </div>
-                </div>
-            `;
-            statsContainer.insertAdjacentHTML('afterend', playerHTML);
-        }
 
         // Date range display removed - now integrated into timeline controls
     },
