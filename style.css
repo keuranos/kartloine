@@ -147,14 +147,16 @@ body {
     display: flex;
     flex-direction: column;
     z-index: 500;
-    position: relative;
-    padding-top: 95px; /* Reduced from 125px */
-    height: 100vh;
-    transition: padding-top 0.3s ease;
+    position: fixed;
+    right: 0;
+    top: 95px; /* Start below header */
+    bottom: 0;
+    height: auto; /* Let it fill from top to bottom */
+    transition: top 0.3s ease;
 }
 
 .side-panel.timeline-hidden {
-    padding-top: 60px;
+    top: 60px; /* Less space when timeline is hidden */
 }
 
 .side-panel.empty {
@@ -170,9 +172,9 @@ body {
 /* Connection Point for Line */
 .side-panel::before {
     content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
+    position: fixed; /* Changed from absolute to fixed */
+    left: calc(100vw - 360px); /* Position at left edge of side panel */
+    top: 50vh; /* Always at vertical center of viewport */
     width: 20px;
     height: 20px;
     background: #667eea;
@@ -180,8 +182,12 @@ body {
     transform: translate(-10px, -10px);
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.3);
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, left 0.3s ease;
     z-index: 1000;
+}
+
+.main-container.feed-closed .side-panel::before {
+    left: calc(100vw - 360px); /* Stay in same position when feed closes */
 }
 
 .side-panel.has-connection::before {
@@ -403,7 +409,9 @@ body {
 
 /* Event Detail Panel */
 .event-detail {
-    padding: 15px; /* Reduced from 20px for better fit */
+    padding: 15px;
+    height: 100%; /* Fill the side panel */
+    overflow-y: auto;
 }
 
 .event-detail-header {

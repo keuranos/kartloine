@@ -88,19 +88,24 @@ const MapManager = {
         if (this.selectionLine) {
             this.map.removeLayer(this.selectionLine);
         }
-        
+
+        // Calculate the connection point at the center of viewport
         const mapBounds = this.map.getBounds();
+        const mapCenter = this.map.getCenter();
+
+        // Get the right edge of the map (left edge of side panel)
         const rightEdge = mapBounds.getEast();
-        const center = mapBounds.getCenter();
-        const endPoint = [center.lat, rightEdge];
-        
+
+        // Use viewport center latitude for the endpoint
+        const endPoint = [mapCenter.lat, rightEdge];
+
         this.selectionLine = L.polyline([markerLatLng, endPoint], {
             color: '#667eea',
             weight: 4,
             dashArray: '10, 5',
             opacity: 0.9
         }).addTo(this.map);
-        
+
         // Add connection point class to side panel
         const sidePanel = document.getElementById('sidePanel');
         if (sidePanel) {
