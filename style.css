@@ -316,8 +316,35 @@ body {
 
 .feed-item.active {
     border-left-color: #667eea;
-    background: #2d3045;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    background: #3a3d52; /* Brighter background */
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    transform: translateX(5px);
+}
+
+/* Flash animation when feed item is selected from map */
+@keyframes feedFlash {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        border-left-color: #667eea;
+    }
+    25% {
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.9), 0 0 20px rgba(102, 126, 234, 0.6);
+        border-left-color: #43e97b;
+        transform: translateX(8px) scale(1.02);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        border-left-color: #667eea;
+    }
+    75% {
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.9), 0 0 20px rgba(102, 126, 234, 0.6);
+        border-left-color: #43e97b;
+        transform: translateX(8px) scale(1.02);
+    }
+}
+
+.feed-item.flash {
+    animation: feedFlash 1.5s ease-in-out;
 }
 
 .feed-item-date {
@@ -343,10 +370,37 @@ body {
     font-size: 13px;
     line-height: 1.5;
     margin-bottom: 10px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+}
+
+/* Expand/Collapse button for feed text */
+.feed-expand-btn {
+    background: none;
+    border: none;
+    color: #667eea;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-top: 5px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.feed-expand-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    color: #43e97b;
+}
+
+.feed-expand-btn span {
+    font-size: 10px;
+}
+
+.feed-text-preview,
+.feed-text-full {
+    display: inline;
 }
 
 .feed-item-location {

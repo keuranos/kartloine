@@ -505,14 +505,14 @@ const UIManager = {
 
     populateFeed: function(events) {
         console.log('populateFeed called with', events ? events.length : 0, 'events');
-        
+
         const feedContent = document.getElementById('feedContent');
-        
+
         if (!feedContent) {
             console.error('Feed content element not found!');
             return;
         }
-        
+
         if (!events || events.length === 0) {
             console.log('No events to display in feed');
             feedContent.innerHTML = `
@@ -524,21 +524,21 @@ const UIManager = {
             `;
             return;
         }
-        
+
         // Sort events by message_date or event_date (newest first)
         const sortedEvents = [...events].sort((a, b) => {
             const dateA = a.message_date || a.event_date || '';
             const dateB = b.message_date || b.event_date || '';
             return dateB.localeCompare(dateA);
         });
-        
+
         console.log('Rendering', sortedEvents.length, 'events in feed');
-        
+
         feedContent.innerHTML = sortedEvents.map(event => {
             // Use translated_text (English) instead of message_text
             const messageText = event.translated_text || event.event_description || event.message_text || 'No message text available';
             const messageDate = event.message_date || event.event_date || 'N/A';
-            
+
             // Format time if available (HH:MM:SS)
             let displayDate = messageDate;
             if (messageDate && messageDate.includes(' ')) {
@@ -547,7 +547,11 @@ const UIManager = {
                 const [hours, minutes] = time.split(':');
                 displayDate = `${date} ${hours}:${minutes}`;
             }
-            
+
+            // Truncate for preview
+            const isTruncated = messageText.length > 200;
+            const previewText = isTruncated ? messageText.substring(0, 200) + '...' : messageText;
+
             return `
             <div class="feed-item" id="feed-${event.event_id}">
                 <div class="feed-item-date">
@@ -557,7 +561,13 @@ const UIManager = {
                     ${event.event_name || 'Unnamed Event'}
                 </div>
                 <div class="feed-item-description">
-                    ${messageText.substring(0, 200)}${messageText.length > 200 ? '...' : ''}
+                    <span class="feed-text-preview" id="preview-${event.event_id}">${previewText}</span>
+                    <span class="feed-text-full" id="full-${event.event_id}" style="display: none;">${messageText}</span>
+                    ${isTruncated ? `
+                        <button class="feed-expand-btn" onclick="UIManager.toggleFeedText('${event.event_id}'); event.stopPropagation();">
+                            <span id="expand-icon-${event.event_id}">▼</span> <span id="expand-text-${event.event_id}">More</span>
+                        </button>
+                    ` : ''}
                 </div>
                 <div class="feed-item-location">
                     📍 ${event.event_location || 'Unknown location'}
@@ -575,8 +585,33 @@ const UIManager = {
             </div>
         `;
         }).join('');
-        
+
         console.log('Feed populated successfully');
+    },
+
+    toggleFeedText: function(eventId) {
+        const preview = document.getElementById(`preview-${eventId}`);
+        const full = document.getElementById(`full-${eventId}`);
+        const icon = document.getElementById(`expand-icon-${eventId}`);
+        const text = document.getElementById(`expand-text-${eventId}`);
+
+        if (preview && full && icon && text) {
+            const isExpanded = full.style.display !== 'none';
+
+            if (isExpanded) {
+                // Collapse
+                preview.style.display = 'inline';
+                full.style.display = 'none';
+                icon.textContent = '▼';
+                text.textContent = 'More';
+            } else {
+                // Expand
+                preview.style.display = 'none';
+                full.style.display = 'inline';
+                icon.textContent = '▲';
+                text.textContent = 'Less';
+            }
+        }
     },
 
     showOnMap: function(eventId) {
@@ -662,14 +697,28 @@ const UIManager = {
     },
 
     updateFeedActiveItem: function(eventId) {
+        // Remove active class and flash animation from all items
         document.querySelectorAll('.feed-item').forEach(item => {
-            item.classList.remove('active');
+            item.classList.remove('active', 'flash');
         });
+
         const feedItem = document.getElementById(`feed-${eventId}`);
         if (feedItem) {
+            // Add active class
             feedItem.classList.add('active');
+
             // Scroll to active item
             feedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Add flash animation after a short delay (so scroll completes first)
+            setTimeout(() => {
+                feedItem.classList.add('flash');
+
+                // Remove flash class after animation completes
+                setTimeout(() => {
+                    feedItem.classList.remove('flash');
+                }, 1500); // Match animation duration
+            }, 500); // Wait for scroll to mostly complete
         }
     }
 };
