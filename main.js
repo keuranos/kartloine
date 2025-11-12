@@ -187,6 +187,7 @@ const App = {
                 if (isVisible) {
                     // Hide timeline
                     container.classList.add('collapsed');
+                    container.style.display = 'none'; // Clear inline style so CSS class takes effect
                     mapContainer.classList.add('timeline-hidden');
                     sidePanel.classList.add('timeline-hidden');
                     btn.classList.remove('active');
