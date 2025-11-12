@@ -543,7 +543,7 @@ const App = {
                 if (marker) {
                     const weaponType = DataProcessor.getWeaponType(event);
                     const side = DataProcessor.detectSide(event);
-                    marker.setIcon(MapManager.getMarkerIcon(weaponType, side, true));
+                    MapManager.updateMarkerIcon(event.event_id, weaponType, side, true);
                 }
             }
         });
