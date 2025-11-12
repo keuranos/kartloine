@@ -52,18 +52,15 @@ const App = {
             const panel = document.getElementById('feedPanel');
             const btn = document.getElementById('feedToggleBtn');
             const mainContainer = document.querySelector('.main-container');
-            const header = document.querySelector('.header');
-            
+
             panel.classList.toggle('closed');
             btn.classList.toggle('feed-active');
-            
-            // Adjust main container and header when feed closes
+
+            // Adjust main container when feed closes
             if (panel.classList.contains('closed')) {
                 mainContainer.classList.add('feed-closed');
-                header.classList.add('feed-closed');
             } else {
                 mainContainer.classList.remove('feed-closed');
-                header.classList.remove('feed-closed');
             }
         });
 
@@ -72,12 +69,10 @@ const App = {
             const panel = document.getElementById('feedPanel');
             const btn = document.getElementById('feedToggleBtn');
             const mainContainer = document.querySelector('.main-container');
-            const header = document.querySelector('.header');
-            
+
             panel.classList.add('closed');
             btn.classList.remove('feed-active');
             mainContainer.classList.add('feed-closed');
-            header.classList.add('feed-closed');
         });
 
         // Quick filter for recent events
