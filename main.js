@@ -52,18 +52,15 @@ const App = {
             const panel = document.getElementById('feedPanel');
             const btn = document.getElementById('feedToggleBtn');
             const mainContainer = document.querySelector('.main-container');
-            const header = document.querySelector('.header');
-            
+
             panel.classList.toggle('closed');
             btn.classList.toggle('feed-active');
-            
-            // Adjust main container and header when feed closes
+
+            // Adjust main container when feed closes
             if (panel.classList.contains('closed')) {
                 mainContainer.classList.add('feed-closed');
-                header.classList.add('feed-closed');
             } else {
                 mainContainer.classList.remove('feed-closed');
-                header.classList.remove('feed-closed');
             }
         });
 
@@ -72,12 +69,10 @@ const App = {
             const panel = document.getElementById('feedPanel');
             const btn = document.getElementById('feedToggleBtn');
             const mainContainer = document.querySelector('.main-container');
-            const header = document.querySelector('.header');
-            
+
             panel.classList.add('closed');
             btn.classList.remove('feed-active');
             mainContainer.classList.add('feed-closed');
-            header.classList.add('feed-closed');
         });
 
         // Quick filter for recent events
@@ -247,9 +242,23 @@ const App = {
     },
 
     processEvents: function(data) {
-        return data.map(row => {
+        return data.map((row, index) => {
             const event = { ...row };
-            
+
+            // Ensure event has an ID - use event_id or generate from other fields
+            if (!event.event_id || event.event_id === '') {
+                // Try alternative ID fields first
+                if (event.id) {
+                    event.event_id = event.id;
+                } else if (event.message_id) {
+                    event.event_id = event.message_id;
+                } else {
+                    // Generate unique ID from event data
+                    const idSource = `${event.event_date || ''}_${event.event_name || ''}_${event.event_lat || ''}_${event.event_lng || ''}_${index}`;
+                    event.event_id = btoa(idSource).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+                }
+            }
+
             // Detect and handle timestamps
             if (event.message_date) {
                 // Check if message_date contains time (HH:MM:SS)
@@ -261,14 +270,14 @@ const App = {
                     event.__hasTimestamp = false;
                 }
             }
-            
+
             // War crime detection
             event.__wcResult = WarCrimeDetector.computeWarCrime(event);
-            
+
             // Parse coordinates
             if (event.event_lat) event.event_lat = parseFloat(event.event_lat);
             if (event.event_lng) event.event_lng = parseFloat(event.event_lng);
-            
+
             return event;
         });
     },
@@ -585,48 +594,63 @@ const App = {
     updateMetaTags: function(event) {
         // Update page title
         document.title = `${event.event_name || 'Event'} - OSINT Database`;
-        
-        // Get SHORT description from event analysis or description
+
+        // Get SHORT description - prioritize the short_description field from CSV
         let shortDescription = '';
-        
-        // Try to get summary from multimodal analysis
-        if (event.multimodal_analysis) {
+
+        // First, check if there's a dedicated short_description field in the CSV
+        if (event.short_description && event.short_description.trim()) {
+            shortDescription = event.short_description.trim();
+        }
+        // Second, try to extract from multimodal analysis
+        else if (event.multimodal_analysis) {
             const analysis = DataProcessor.parseMultimodalAnalysis(event.multimodal_analysis);
-            if (analysis.summary) {
+
+            // Look for "Short Description:" section
+            if (event.multimodal_analysis.includes('Short Description:')) {
+                const match = event.multimodal_analysis.match(/Short Description:\s*\*?\*?(.+?)(?:\n|$)/i);
+                if (match && match[1]) {
+                    shortDescription = match[1].trim().replace(/^\*+|\*+$/g, '');
+                }
+            }
+            // Fallback to summary
+            else if (analysis.summary) {
                 // Extract first meaningful sentence
                 const sentences = analysis.summary.split(/[.!?]\s+/);
                 shortDescription = sentences[0] || analysis.summary.substring(0, 200);
             }
         }
-        
+
         // Fallback to event_description or translated_text
         if (!shortDescription) {
             shortDescription = event.event_description || event.translated_text || event.message_text || 'View this OSINT event on the interactive map';
         }
-        
+
+        // Clean up the description
+        shortDescription = shortDescription.replace(/^\*+|\*+$/g, '').trim();
+
         // Trim to 200 characters for WhatsApp/social media previews
-        shortDescription = shortDescription.substring(0, 200).trim();
-        if (shortDescription.length === 200 && event.multimodal_analysis) {
-            shortDescription += '...';
+        if (shortDescription.length > 200) {
+            shortDescription = shortDescription.substring(0, 197).trim() + '...';
         }
-        
+
         // Update Open Graph tags
         const ogTitle = document.getElementById('og-title');
         const ogDesc = document.getElementById('og-description');
         const ogUrl = document.getElementById('og-url');
-        
+
         if (ogTitle) ogTitle.setAttribute('content', `${event.event_name || 'Event'} - ${event.event_location || 'Location Unknown'}`);
         if (ogDesc) ogDesc.setAttribute('content', shortDescription);
         if (ogUrl) ogUrl.setAttribute('content', window.location.href);
-        
+
         // Update Twitter Card tags
         const twitterTitle = document.getElementById('twitter-title');
         const twitterDesc = document.getElementById('twitter-description');
-        
+
         if (twitterTitle) twitterTitle.setAttribute('content', `${event.event_name || 'Event'} - ${event.event_location || 'Location Unknown'}`);
         if (twitterDesc) twitterDesc.setAttribute('content', shortDescription);
-        
-        console.log('✅ Meta tags updated:', shortDescription.substring(0, 50) + '...');
+
+        console.log('✅ Meta tags updated for social sharing:', shortDescription.substring(0, 50) + '...');
     },
 
     handleFileUpload: function(event) {
