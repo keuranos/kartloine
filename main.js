@@ -270,17 +270,16 @@ const App = {
         return data.map((row, index) => {
             const event = { ...row };
 
-            // Ensure event has an ID - use event_id or generate from other fields
+            // Ensure event has an ID - use message_url or generate simple numeric ID
             if (!event.event_id || event.event_id === '') {
-                // Try alternative ID fields first
-                if (event.id) {
-                    event.event_id = event.id;
-                } else if (event.message_id) {
-                    event.event_id = event.message_id;
-                } else {
-                    // Generate unique ID from event data
-                    const idSource = `${event.event_date || ''}_${event.event_name || ''}_${event.event_lat || ''}_${event.event_lng || ''}_${index}`;
-                    event.event_id = btoa(idSource).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+                // Use message_url as unique ID (extract last part after /)
+                if (event.message_url && event.message_url.includes('/')) {
+                    const parts = event.message_url.split('/');
+                    event.event_id = 'msg_' + parts[parts.length - 1];
+                }
+                // Fallback to simple index-based ID
+                else {
+                    event.event_id = 'event_' + String(index).padStart(6, '0');
                 }
             }
 
