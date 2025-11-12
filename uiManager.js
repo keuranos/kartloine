@@ -165,9 +165,13 @@ const UIManager = {
                 <div class="label">FAVORITES</div>
                 <div class="value">${favoritesCount}</div>
             </div>
-            <div class="stat-card network" onclick="UIManager.openModal('network')">
-                <div class="label">NETWORK GRAPH</div>
-                <div class="value">🕸️</div>
+            <div class="stat-card network" onclick="UIManager.openFilterPreferencesModal()">
+                <div class="label">SAVE/LOAD VIEW</div>
+                <div class="value">💾</div>
+            </div>
+            <div class="stat-card favorites" onclick="UIManager.openAboutModal()" style="background: linear-gradient(135deg, #9c88ff 0%, #5f27cd 100%);">
+                <div class="label">ABOUT</div>
+                <div class="value">ℹ️</div>
             </div>
             <div class="stat-card reset" onclick="App.resetAllFilters()">
                 <div class="label">RESET ALL</div>
@@ -516,6 +520,40 @@ const UIManager = {
             edges: { color: '#667eea' },
             physics: { stabilization: true }
         });
+    },
+
+    openFilterPreferencesModal: function() {
+        const modal = document.getElementById('filterPreferencesModal');
+        modal.style.display = 'block';
+
+        // Get current map state
+        const center = MapManager.map.getCenter();
+        const zoom = MapManager.map.getZoom();
+
+        // Build shareable URL with current filters and map view
+        const params = new URLSearchParams();
+        params.set('lat', center.lat.toFixed(6));
+        params.set('lng', center.lng.toFixed(6));
+        params.set('zoom', zoom);
+
+        // Add active filters
+        if (EntityFilters.selectedSystems.size > 0) {
+            params.set('systems', Array.from(EntityFilters.selectedSystems).join(','));
+        }
+        if (EntityFilters.selectedUnits.size > 0) {
+            params.set('units', Array.from(EntityFilters.selectedUnits).join(','));
+        }
+        if (App.state.warCrimeFilter !== 'all') {
+            params.set('wcFilter', App.state.warCrimeFilter);
+        }
+
+        const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+        document.getElementById('filterShareUrl').value = shareUrl;
+    },
+
+    openAboutModal: function() {
+        const modal = document.getElementById('aboutModal');
+        modal.style.display = 'block';
     },
 
     populateFeed: function(events) {

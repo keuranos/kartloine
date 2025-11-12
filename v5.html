@@ -292,6 +292,63 @@
         </div>
     </div>
 
+    <div id="filterPreferencesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">💾 Save / Load Current View</h2>
+                <button class="modal-close" onclick="closeModal('filterPreferencesModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div style="padding: 20px;">
+                    <p style="margin-bottom: 15px; color: #666;">Share your current map view and active filters with this link:</p>
+                    <input type="text" id="filterShareUrl" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-family: monospace; background: #f8f9fa;">
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="modal-btn modal-btn-apply" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
+                            📋 Copy Link
+                        </button>
+                        <button class="modal-btn modal-btn-clear" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
+                            🔗 Open in New Tab
+                        </button>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 13px; color: #999;">
+                        💡 This link preserves your current map position, zoom level, and active filters (Systems, Units, War Crimes).
+                    </p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('filterPreferencesModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ℹ️ About</h2>
+                <button class="modal-close" onclick="closeModal('aboutModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div style="padding: 40px; text-align: center;">
+                    <h3 style="font-size: 24px; color: #667eea; margin-bottom: 20px;">AI makes mistakes. So do you.</h3>
+                    <p style="font-size: 18px; color: #333; margin-bottom: 30px; line-height: 1.6;">Together we can make them less?</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 30px; line-height: 1.8;">
+                        This is a static demo of realtime open data collection, analysis and visualization pipeline.<br>
+                        Data is updated irregularly.
+                    </p>
+                    <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">Vasama Systems 2025</p>
+                        <p style="font-size: 14px; color: #667eea;">
+                            <a href="mailto:info@vasama.systems" style="color: #667eea; text-decoration: none; font-weight: 600;">info@vasama.systems</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="closeModal('aboutModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Feed Panel (Fixed Position) -->
     <div class="feed-panel" id="feedPanel">
         <div class="feed-header">

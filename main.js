@@ -509,8 +509,11 @@ const App = {
                             eventIds: [] // Daily reports don't link to specific events
                         };
                     });
-                    
+
                     console.log('✅ Parsed daily reports:', this.state.dailyReports.length);
+
+                    // Update stats to show correct report count
+                    UIManager.updateStats(this.state.filteredEvents, this.state);
                 } else {
                     console.warn('⚠️ No daily reports found in raportit.csv');
                     this.state.dailyReports = [];
@@ -665,7 +668,46 @@ const App = {
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event');
         const zoomParam = urlParams.get('zoom');
+        const latParam = urlParams.get('lat');
+        const lngParam = urlParams.get('lng');
+        const systemsParam = urlParams.get('systems');
+        const unitsParam = urlParams.get('units');
+        const wcFilterParam = urlParams.get('wcFilter');
         const favoritesParam = urlParams.get('favorites');
+
+        // Apply filter preferences from URL
+        if (systemsParam && EntityManager.isLoaded) {
+            const systems = systemsParam.split(',');
+            systems.forEach(s => EntityFilters.selectedSystems.add(s));
+            console.log('🔧 Loaded systems filter:', systems.length, 'systems');
+        }
+
+        if (unitsParam && EntityManager.isLoaded) {
+            const units = unitsParam.split(',');
+            units.forEach(u => EntityFilters.selectedUnits.add(u));
+            console.log('🔧 Loaded units filter:', units.length, 'units');
+        }
+
+        if (wcFilterParam) {
+            this.state.warCrimeFilter = wcFilterParam;
+            console.log('🔧 Loaded war crime filter:', wcFilterParam);
+        }
+
+        // Apply filters if any were loaded
+        if (systemsParam || unitsParam || wcFilterParam) {
+            this.applyFilters();
+        }
+
+        // Set map view from URL
+        if (latParam && lngParam && zoomParam) {
+            const lat = parseFloat(latParam);
+            const lng = parseFloat(lngParam);
+            const zoom = parseInt(zoomParam, 10);
+            setTimeout(() => {
+                MapManager.map.setView([lat, lng], zoom);
+                console.log('🗺️ Set map view from URL:', lat, lng, 'zoom', zoom);
+            }, 500);
+        }
 
         // Parse zoom level (default to 12 if not provided)
         const targetZoom = zoomParam ? parseInt(zoomParam, 10) : 12;
