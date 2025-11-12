@@ -244,7 +244,20 @@ const MapManager = {
 
     updateMarkerIcon: function(eventId, weaponType, side, isViewed) {
         const marker = this.eventMarkers[eventId];
-        if (marker) {
+        if (!marker) return;
+
+        // Check if it's a circle marker (generic event) - these use setStyle, not setIcon
+        if (marker.setStyle && !marker.setIcon) {
+            // Circle marker - update style instead of icon
+            marker.setStyle({
+                fillOpacity: isViewed ? 0.4 : 0.8,
+                opacity: 1
+            });
+            return;
+        }
+
+        // Regular marker with icon
+        if (marker.setIcon) {
             // Check if it's an entity marker that needs special handling
             const event = App.state.allEvents.find(e => e.event_id === eventId);
             if (event && event.__match) {
