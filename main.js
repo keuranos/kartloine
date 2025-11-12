@@ -41,8 +41,7 @@ const App = {
         // Load events
         this.loadEvents();
 
-        // Handle URL parameters - will auto-draw line for shared links
-        setTimeout(() => this.handleUrlParams(), 500);
+        // Note: handleUrlParams will be called after events are loaded
     },
 
     setupEventListeners: function() {
@@ -316,6 +315,9 @@ const App = {
                             this.render();
                             this.loadDailyReports();
                             console.log('✅ Rendering complete!');
+
+                            // Now handle URL parameters for shared links (after events are loaded)
+                            setTimeout(() => this.handleUrlParams(), 500);
                         } catch (error) {
                             console.error('❌ Error processing events:', error);
                             this.showError('Failed to process events: ' + error.message);
