@@ -244,17 +244,11 @@ const MapManager = {
 
     updateMarkerIcon: function(eventId, weaponType, side, isViewed) {
         const marker = this.eventMarkers[eventId];
-        if (!marker) {
-            console.log('⚠️ Marker not found for event:', eventId);
-            return;
-        }
-
-        console.log('🔄 Updating marker icon for event:', eventId, 'isViewed:', isViewed);
+        if (!marker) return;
 
         // Check if it's a circle marker (generic event) - these use setStyle, not setIcon
         if (marker.setStyle && !marker.setIcon) {
             // Circle marker - update style instead of icon
-            console.log('  → Circle marker, updating style');
             marker.setStyle({
                 fillOpacity: isViewed ? 0.4 : 0.8,
                 opacity: 1
@@ -269,18 +263,15 @@ const MapManager = {
             if (event && event.__match) {
                 const match = event.__match;
                 if (match.group === 'system' || match.group === 'unit') {
-                    console.log('  → Entity marker, updating icon');
                     marker.setIcon(this.createEntityIcon(match, isViewed));
                     return;
                 } else if (match.group === 'flag') {
-                    console.log('  → Flag marker, updating icon');
                     marker.setIcon(this.createFlagIcon(match.side, isViewed));
                     return;
                 }
             }
 
             // Fallback to legacy icon
-            console.log('  → Legacy marker, updating icon');
             marker.setIcon(this.getMarkerIcon(weaponType, side, isViewed));
         }
     }

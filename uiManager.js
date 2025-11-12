@@ -1,10 +1,13 @@
 // UI Manager Module
 const UIManager = {
+    // Track which analysis sections are pinned open
+    openAnalysisSections: new Set(),
+
     showEventDetail: function(event, state) {
         const analysis = DataProcessor.parseMultimodalAnalysis(event.multimodal_analysis);
         const isFavorite = state.favorites.has(event.event_id);
         const wcResult = event.__wcResult || { tag: null, score: 0 };
-        
+
         let html = `
             <div class="event-detail">
                 <div class="event-detail-header">
@@ -24,8 +27,8 @@ const UIManager = {
                     </button>
                 </div>
         `;
-        
-        // Add analysis sections
+
+        // Add analysis sections with pinned state
         if (analysis.summary) {
             html += this.createAnalysisSection('summary', event.event_id, '📊 Multimodal Summary', analysis.summary);
         }
@@ -44,31 +47,61 @@ const UIManager = {
         if (analysis.sentiment) {
             html += this.createAnalysisSection('sentiment', event.event_id, '😊 Sentiment Analysis', analysis.sentiment);
         }
-        
+
         html += `</div>`;
-        
+
         const panel = document.getElementById('sidePanel');
         panel.classList.remove('empty');
         panel.innerHTML = html;
+
+        // Restore pinned sections after rendering
+        this.restorePinnedSections(event.event_id);
     },
 
     createAnalysisSection: function(type, eventId, title, content) {
+        const isPinned = this.openAnalysisSections.has(type);
+        const showClass = isPinned ? 'show' : '';
+        const arrow = isPinned ? '▲' : '▼';
+
         return `
             <div class="analysis-section">
-                <div class="analysis-toggle" onclick="UIManager.toggleAnalysis(this, '${type}-${eventId}')">
+                <div class="analysis-toggle" onclick="UIManager.toggleAnalysis(this, '${type}', '${eventId}')">
                     <span>${title}</span>
-                    <span>▼</span>
+                    <span>${arrow}</span>
                 </div>
-                <div id="${type}-${eventId}" class="analysis-content">${DataProcessor.formatAnalysisText(content)}</div>
+                <div id="${type}-${eventId}" class="analysis-content ${showClass}">${DataProcessor.formatAnalysisText(content)}</div>
             </div>
         `;
     },
 
-    toggleAnalysis: function(element, id) {
-        const content = document.getElementById(id);
+    restorePinnedSections: function(eventId) {
+        // Apply pinned state to all sections
+        this.openAnalysisSections.forEach(type => {
+            const contentId = `${type}-${eventId}`;
+            const content = document.getElementById(contentId);
+            if (content) {
+                content.classList.add('show');
+            }
+        });
+    },
+
+    toggleAnalysis: function(element, type, eventId) {
+        const contentId = `${type}-${eventId}`;
+        const content = document.getElementById(contentId);
         const arrow = element.querySelector('span:last-child');
+
         content.classList.toggle('show');
-        arrow.textContent = content.classList.contains('show') ? '▲' : '▼';
+        const isOpen = content.classList.contains('show');
+        arrow.textContent = isOpen ? '▲' : '▼';
+
+        // Update pinned state
+        if (isOpen) {
+            this.openAnalysisSections.add(type);
+            console.log('📌 Pinned section:', type);
+        } else {
+            this.openAnalysisSections.delete(type);
+            console.log('📍 Unpinned section:', type);
+        }
     },
 
     shareEvent: function(eventId) {
