@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Event Database - Visual Analytics</title>
+    
+    <!-- Open Graph Meta Tags for Link Previews -->
+    <meta property="og:title" content="OSINT Event Database - Visual Analytics" id="og-title">
+    <meta property="og:description" content="Explore and analyze OSINT events with interactive map visualization and detailed analytics." id="og-description">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="" id="og-url">
+    <meta property="og:site_name" content="OSINT Event Database">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OSINT Event Database - Visual Analytics" id="twitter-title">
+    <meta name="twitter:description" content="Explore and analyze OSINT events with interactive map visualization and detailed analytics." id="twitter-description">
+    
+    <!-- External Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 OSINT Event Database - Visual Analytics</h1>
+        <div class="stats" id="stats"></div>
+        
+        <!-- Time Range Controls - Redesigned with Manual Inputs -->
+        <div class="time-slider-container" id="timeSliderContainer" style="display: none;">
+            <div class="time-controls-row">
+                <div class="time-control-buttons">
+                    <button class="time-control-btn" id="playBtn">PLAY</button>
+                    <button class="time-control-btn" id="pauseBtn" style="display: none;">PAUSE</button>
+                    <button class="time-control-btn" id="resetBtn">Reset</button>
+                </div>
+                <div class="time-manual-inputs">
+                    <div class="time-input-group">
+                        <label>From:</label>
+                        <input type="text" id="manualStartDate" placeholder="DD/MM/YYYY" maxlength="10" class="time-date-input">
+                    </div>
+                    <div class="time-input-group">
+                        <label>To:</label>
+                        <input type="text" id="manualEndDate" placeholder="DD/MM/YYYY" maxlength="10" class="time-date-input">
+                    </div>
+                    <button class="time-control-btn apply-btn" id="applyManualRangeBtn">Apply</button>
+                </div>
+            </div>
+            <div class="time-slider-row">
+                <label>Timeline:</label>
+                <input type="range" id="timeSlider" min="0" max="100" value="100" step="1" class="time-slider">
+                <div class="time-slider-display">
+                    <span id="timeSliderStartDate">2025-10-12</span>
+                    <span>→</span>
+                    <span id="timeSliderEndDate">2025-10-22</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="fileUploadUI" style="display: none;">
+            <h3 style="color: #667eea; margin-bottom: 10px;">📁 Upload CSV File</h3>
+            <input type="file" id="csvFileInput" accept=".csv">
+            <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                <strong>📝 Instructions:</strong> Place your <code>tapahtumat.csv</code> file in the same directory as this HTML file, or upload it here.
+            </p>
+        </div>
+    </div>
+
+    <!-- Control Buttons Container -->
+    <div class="bottom-controls">
+        <button class="ctrl-btn" id="filterToggleBtn">
+            <span style="font-size: 18px;">🔍</span> Filters
+        </button>
+        <button class="ctrl-btn feed-active" id="feedToggleBtn">
+            <span style="font-size: 18px;">📱</span> Feed
+        </button>
+        <button class="ctrl-btn" id="quickFilterBtn">
+            <span style="font-size: 18px;">🔥</span> Recent
+        </button>
+    </div>
+
+    <!-- Bottom Filter Panel -->
+    <div class="bottom-filter-panel" id="bottomFilterPanel">
+        <div class="filter-panel-content">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Search Events</label>
+                    <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+                </div>
+                <div class="filter-group" style="max-width: 200px;">
+                    <label>Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="filter-group" style="max-width: 200px;">
+                    <label>End Date</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+                <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Modals -->
+    <div id="eventsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📋 All Events</h2>
+                <button class="modal-close" onclick="closeModal('eventsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="eventsModalSearch" placeholder="🔍 Search events...">
+            </div>
+            <div class="modal-selection-count" id="eventsSelectionCount">0 events selected</div>
+            <div class="modal-list" id="eventsModalList"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="clearModalSelection('events')">Clear All</button>
+                <button class="modal-btn modal-btn-apply" onclick="applyModalFilter('events')">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="locationsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📍 All Locations</h2>
+                <button class="modal-close" onclick="closeModal('locationsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="locationsModalSearch" placeholder="🔍 Search locations...">
+            </div>
+            <div class="modal-selection-count" id="locationsSelectionCount">0 locations selected</div>
+            <div class="modal-list" id="locationsModalList"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="clearModalSelection('locations')">Clear All</button>
+                <button class="modal-btn modal-btn-apply" onclick="applyModalFilter('locations')">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="entitiesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">👥 All Entities</h2>
+                <button class="modal-close" onclick="closeModal('entitiesModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="entitiesModalSearch" placeholder="🔍 Search entities...">
+            </div>
+            <div class="modal-selection-count" id="entitiesSelectionCount">0 entities selected</div>
+            <div class="modal-list" id="entitiesModalList"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="clearModalSelection('entities')">Clear All</button>
+                <button class="modal-btn modal-btn-apply" onclick="applyModalFilter('entities')">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="warCrimesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚠️ War Crimes Filter</h2>
+                <button class="modal-close" onclick="closeModal('warCrimesModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div style="padding: 20px;">
+                    <p style="margin-bottom: 20px; color: #666;">Filter events by war crime likelihood based on AI analysis.</p>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-all" value="all" checked>
+                        <label class="modal-item-label" for="wc-all">
+                            <strong>All Events</strong><br>
+                            <small style="color: #999;">Show all events regardless of war crime classification</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-likely" value="likely">
+                        <label class="modal-item-label" for="wc-likely">
+                            <strong>Likely War Crimes</strong><br>
+                            <small style="color: #999;">Events with score ≥ 2 (treatment of persons OR civilian targets)</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-strong" value="strong">
+                        <label class="modal-item-label" for="wc-strong">
+                            <strong>Strong Likely War Crimes</strong><br>
+                            <small style="color: #999;">Events with score ≥ 4 (multiple strong indicators)</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="closeModal('warCrimesModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 Daily Reports</h2>
+                <button class="modal-close" onclick="closeModal('reportsModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div id="reportsDayList" class="day-list"></div>
+                <div id="reportContent" class="report-content" style="display: none;"></div>
+            </div>
+            <div class="modal-actions" id="reportsActions" style="display: none;">
+                <button class="modal-btn modal-btn-clear" onclick="backToReportsList()">← Back to Reports</button>
+                <button class="modal-btn modal-btn-apply" onclick="showReportEvents()">Show Events on Map</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="favoritesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⭐ Favorites</h2>
+                <button class="modal-close" onclick="closeModal('favoritesModal')">&times;</button>
+            </div>
+            <div class="modal-list" id="favoritesList"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="clearFavorites()">Clear All</button>
+                <button class="modal-btn modal-btn-apply" onclick="shareFavorites()">📤 Share List</button>
+                <button class="modal-btn modal-btn-apply" onclick="showFavoritesOnMap()">Show on Map</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="networkModal" class="modal">
+        <div class="modal-content" style="max-width: 1200px; max-height: 85vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">🕸️ Entity Network Graph</h2>
+                <button class="modal-close" onclick="closeModal('networkModal')">&times;</button>
+            </div>
+            <div id="networkGraph" style="height: 600px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa;"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('networkModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed Panel (Fixed Position) -->
+    <div class="feed-panel" id="feedPanel">
+        <div class="feed-header">
+            <h2>📱 Feed</h2>
+            <button class="feed-close-btn" id="feedCloseBtn">×</button>
+        </div>
+        <div class="feed-content" id="feedContent">
+            <div class="feed-empty">
+                <div style="font-size: 48px; margin-bottom: 20px;">📱</div>
+                <div>Telegram posts will appear here</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        <div class="side-panel empty" id="sidePanel">
+            <div>
+                <div style="font-size: 48px; margin-bottom: 20px;">📍</div>
+                <div>Click on any marker to view event details</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    
+    <!-- Application Modules -->
+    <script src="js/warCrimeDetector.js"></script>
+    <script src="js/dataProcessor.js"></script>
+    <script src="js/storageManager.js"></script>
+    <script src="js/mapManager.js"></script>
+    <script src="js/uiManager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

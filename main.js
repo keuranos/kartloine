@@ -1,0 +1,674 @@
+// Main Application Module
+const App = {
+    // Application state
+    state: {
+        allEvents: [],
+        filteredEvents: [],
+        dailyReports: [],
+        currentReport: null,
+        warCrimeFilter: 'all',
+        selectedEventId: null,
+        modalSelections: {
+            events: new Set(),
+            locations: new Set(),
+            entities: new Set()
+        },
+        viewedEvents: new Set(),
+        favorites: new Set(),
+        dateRange: null,
+        timelineInterval: null
+    },
+
+    // Initialize application
+    init: function() {
+        console.log('🚀 Initializing OSINT Dashboard...');
+        
+        // Load saved data
+        const storage = StorageManager.load();
+        this.state.viewedEvents = storage.viewedEvents;
+        this.state.favorites = storage.favorites;
+        
+        // Initialize components
+        MapManager.init();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Load events
+        this.loadEvents();
+        
+        // Handle URL parameters - will auto-draw line for shared links
+        setTimeout(() => this.handleUrlParams(), 500);
+    },
+
+    setupEventListeners: function() {
+        // Filter toggle
+        document.getElementById('filterToggleBtn').addEventListener('click', () => {
+            document.getElementById('bottomFilterPanel').classList.toggle('open');
+        });
+
+        // Feed toggle
+        document.getElementById('feedToggleBtn').addEventListener('click', () => {
+            const panel = document.getElementById('feedPanel');
+            const btn = document.getElementById('feedToggleBtn');
+            const mainContainer = document.querySelector('.main-container');
+            const header = document.querySelector('.header');
+            
+            panel.classList.toggle('closed');
+            btn.classList.toggle('feed-active');
+            
+            // Adjust main container and header when feed closes
+            if (panel.classList.contains('closed')) {
+                mainContainer.classList.add('feed-closed');
+                header.classList.add('feed-closed');
+            } else {
+                mainContainer.classList.remove('feed-closed');
+                header.classList.remove('feed-closed');
+            }
+        });
+
+        // Feed close button
+        document.getElementById('feedCloseBtn').addEventListener('click', () => {
+            const panel = document.getElementById('feedPanel');
+            const btn = document.getElementById('feedToggleBtn');
+            const mainContainer = document.querySelector('.main-container');
+            const header = document.querySelector('.header');
+            
+            panel.classList.add('closed');
+            btn.classList.remove('feed-active');
+            mainContainer.classList.add('feed-closed');
+            header.classList.add('feed-closed');
+        });
+
+        // Quick filter for recent events
+        const quickFilterBtn = document.getElementById('quickFilterBtn');
+        if (quickFilterBtn) {
+            quickFilterBtn.addEventListener('click', () => {
+                const btn = document.getElementById('quickFilterBtn');
+                const isActive = btn.classList.contains('active');
+                
+                if (isActive) {
+                    // Remove filter
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<span style="font-size: 18px;">🔥</span> Recent';
+                    document.getElementById('startDate').value = '';
+                } else {
+                    // Apply filter for 2024+
+                    btn.classList.add('active');
+                    btn.innerHTML = '<span style="font-size: 18px;">✓</span> Recent';
+                    document.getElementById('startDate').value = '2024-01-01';
+                }
+                
+                this.applyFilters();
+            });
+        }
+
+        // Apply filters
+        document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+            this.applyFilters();
+            document.getElementById('bottomFilterPanel').classList.remove('open');
+        });
+
+        // Reset filters
+        document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+            this.resetAllFilters();
+        });
+
+        // File upload
+        document.getElementById('csvFileInput').addEventListener('change', (e) => {
+            this.handleFileUpload(e);
+        });
+
+        // War crime filter radio buttons
+        document.querySelectorAll('input[name="wcFilter"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.state.warCrimeFilter = e.target.value;
+                this.applyFilters();
+                closeModal('warCrimesModal');
+            });
+        });
+
+        // Modal search inputs
+        document.getElementById('eventsModalSearch').addEventListener('input', () => {
+            UIManager.filterModalItems('events');
+        });
+        document.getElementById('locationsModalSearch').addEventListener('input', () => {
+            UIManager.filterModalItems('locations');
+        });
+        document.getElementById('entitiesModalSearch').addEventListener('input', () => {
+            UIManager.filterModalItems('entities');
+        });
+
+        // Manual time range button - NEW DD/MM/YYYY format
+        const applyManualRangeBtn = document.getElementById('applyManualRangeBtn');
+        if (applyManualRangeBtn) {
+            applyManualRangeBtn.addEventListener('click', () => {
+                this.applyManualDateRange();
+            });
+        }
+
+        // Auto-format date inputs as DD/MM/YYYY
+        const manualStartDate = document.getElementById('manualStartDate');
+        const manualEndDate = document.getElementById('manualEndDate');
+        
+        if (manualStartDate) {
+            manualStartDate.addEventListener('input', (e) => {
+                e.target.value = this.formatDateInput(e.target.value);
+            });
+        }
+        
+        if (manualEndDate) {
+            manualEndDate.addEventListener('input', (e) => {
+                e.target.value = this.formatDateInput(e.target.value);
+            });
+        }
+    },
+
+    formatDateInput: function(value) {
+        // Remove non-numeric characters
+        let cleaned = value.replace(/\D/g, '');
+        
+        // Add slashes automatically
+        if (cleaned.length >= 2) {
+            cleaned = cleaned.substring(0, 2) + '/' + cleaned.substring(2);
+        }
+        if (cleaned.length >= 5) {
+            cleaned = cleaned.substring(0, 5) + '/' + cleaned.substring(5, 9);
+        }
+        
+        return cleaned;
+    },
+
+    applyManualDateRange: function() {
+        const startInput = document.getElementById('manualStartDate').value;
+        const endInput = document.getElementById('manualEndDate').value;
+        
+        if (!startInput || !endInput) {
+            alert('Please enter both start and end dates (DD/MM/YYYY)');
+            return;
+        }
+        
+        // Convert DD/MM/YYYY to YYYY-MM-DD
+        const startParts = startInput.split('/');
+        const endParts = endInput.split('/');
+        
+        if (startParts.length !== 3 || endParts.length !== 3) {
+            alert('Invalid date format. Please use DD/MM/YYYY');
+            return;
+        }
+        
+        const startDate = `${startParts[2]}-${startParts[1].padStart(2, '0')}-${startParts[0].padStart(2, '0')}`;
+        const endDate = `${endParts[2]}-${endParts[1].padStart(2, '0')}-${endParts[0].padStart(2, '0')}`;
+        
+        // Validate dates
+        if (startDate > endDate) {
+            alert('Start date must be before end date!');
+            return;
+        }
+        
+        // Apply filter
+        document.getElementById('startDate').value = startDate;
+        document.getElementById('endDate').value = endDate;
+        
+        this.applyFilters();
+        
+        alert(`Date range set to: ${startInput} → ${endInput}`);
+    },
+
+    loadEvents: function() {
+        console.log('📂 Loading events from CSV...');
+        document.getElementById('stats').innerHTML = `
+            <div style="background: #667eea; color: white; padding: 20px; border-radius: 10px; width: 100%;">
+                <strong>⏳ Loading data...</strong>
+            </div>
+        `;
+
+        Papa.parse('tapahtumat.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                if (results.data && results.data.length > 0) {
+                    this.state.allEvents = this.processEvents(results.data);
+                    this.state.filteredEvents = this.state.allEvents;
+                    this.initTimeSlider();
+                    this.render();
+                    this.loadDailyReports();
+                    console.log('✅ Events loaded:', this.state.allEvents.length);
+                } else {
+                    this.showError('CSV file is empty or invalid');
+                }
+            },
+            error: (error) => {
+                console.error('CSV error:', error);
+                this.showError('Failed to load CSV: ' + error.message);
+            }
+        });
+    },
+
+    processEvents: function(data) {
+        return data.map(row => {
+            const event = { ...row };
+            
+            // Detect and handle timestamps
+            if (event.message_date) {
+                // Check if message_date contains time (HH:MM:SS)
+                if (event.message_date.includes(' ')) {
+                    // Already has timestamp, keep as is
+                    event.__hasTimestamp = true;
+                } else {
+                    // Only has date, add midnight time for sorting
+                    event.__hasTimestamp = false;
+                }
+            }
+            
+            // War crime detection
+            event.__wcResult = WarCrimeDetector.computeWarCrime(event);
+            
+            // Parse coordinates
+            if (event.event_lat) event.event_lat = parseFloat(event.event_lat);
+            if (event.event_lng) event.event_lng = parseFloat(event.event_lng);
+            
+            return event;
+        });
+    },
+
+    initTimeSlider: function() {
+        // Get all dates and sort them
+        const dates = [...new Set(this.state.allEvents.map(e => e.event_date).filter(d => d))].sort();
+        
+        if (dates.length === 0) return;
+        
+        this.state.dateRange = {
+            min: dates[0],
+            max: dates[dates.length - 1],
+            current: dates[dates.length - 1],
+            allDates: dates
+        };
+        
+        // Show time slider container
+        const container = document.getElementById('timeSliderContainer');
+        container.style.display = 'flex'; // Changed to flex for compact layout
+        
+        // Update display
+        document.getElementById('timeSliderStartDate').textContent = this.state.dateRange.min;
+        document.getElementById('timeSliderEndDate').textContent = this.state.dateRange.current;
+        
+        // Setup slider
+        const slider = document.getElementById('timeSlider');
+        slider.max = dates.length - 1;
+        slider.value = dates.length - 1;
+        
+        slider.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            this.state.dateRange.current = dates[index];
+            document.getElementById('timeSliderEndDate').textContent = dates[index];
+            this.applyTimeFilter();
+        });
+        
+        // Play button
+        document.getElementById('playBtn').addEventListener('click', () => {
+            this.playTimeline();
+        });
+        
+        // Pause button
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            this.pauseTimeline();
+        });
+        
+        // Reset button
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            this.resetTimeline();
+        });
+    },
+
+    playTimeline: function() {
+        const dates = this.state.dateRange.allDates;
+        const slider = document.getElementById('timeSlider');
+        let currentIndex = parseInt(slider.value);
+        
+        // Show pause, hide play
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('pauseBtn').style.display = 'inline-block';
+        
+        this.state.timelineInterval = setInterval(() => {
+            currentIndex++;
+            if (currentIndex >= dates.length) {
+                currentIndex = 0; // Loop back to start
+            }
+            
+            slider.value = currentIndex;
+            this.state.dateRange.current = dates[currentIndex];
+            document.getElementById('timeSliderEndDate').textContent = dates[currentIndex];
+            this.applyTimeFilter();
+        }, 500); // 500ms per step
+    },
+
+    pauseTimeline: function() {
+        if (this.state.timelineInterval) {
+            clearInterval(this.state.timelineInterval);
+            this.state.timelineInterval = null;
+        }
+        
+        // Show play, hide pause
+        document.getElementById('playBtn').style.display = 'inline-block';
+        document.getElementById('pauseBtn').style.display = 'none';
+    },
+
+    resetTimeline: function() {
+        this.pauseTimeline();
+        
+        const dates = this.state.dateRange.allDates;
+        const slider = document.getElementById('timeSlider');
+        
+        slider.value = dates.length - 1;
+        this.state.dateRange.current = dates[dates.length - 1];
+        document.getElementById('timeSliderEndDate').textContent = dates[dates.length - 1];
+        
+        this.applyTimeFilter();
+    },
+
+    applyTimeFilter: function() {
+        // Filter events based on time slider
+        this.state.filteredEvents = this.state.allEvents.filter(event => {
+            return event.event_date <= this.state.dateRange.current;
+        });
+        
+        this.render();
+    },
+
+
+    loadDailyReports: function() {
+        console.log('📊 Loading daily reports from raportit.csv...');
+        
+        Papa.parse('raportit.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                if (results.data && results.data.length > 0) {
+                    console.log('✅ Loaded', results.data.length, 'daily reports');
+                    
+                    // Parse reports
+                    this.state.dailyReports = results.data.map(row => {
+                        // Extract date from report_date (format: 2025-10-22 12:30:48)
+                        let date = 'Unknown';
+                        if (row.report_date) {
+                            date = row.report_date.split(' ')[0]; // Get just the date part
+                        }
+                        
+                        return {
+                            date: date,
+                            content: row.report_text || 'No content available',
+                            eventIds: [] // Daily reports don't link to specific events
+                        };
+                    });
+                    
+                    console.log('✅ Parsed daily reports:', this.state.dailyReports.length);
+                } else {
+                    console.warn('⚠️ No daily reports found in raportit.csv');
+                    this.state.dailyReports = [];
+                }
+            },
+            error: (error) => {
+                console.error('❌ Failed to load raportit.csv:', error);
+                this.state.dailyReports = [];
+            }
+        });
+    },
+
+    render: function() {
+        console.log('🎨 Rendering UI with', this.state.filteredEvents.length, 'events');
+        
+        // Update stats
+        UIManager.updateStats(this.state.filteredEvents, this.state);
+        
+        // Update map
+        MapManager.render(this.state.filteredEvents, (event, latLng) => {
+            this.onMarkerClick(event, latLng);
+        }, this.state);
+        
+        // Update feed
+        UIManager.populateFeed(this.state.filteredEvents);
+        
+        // Mark viewed events as gray
+        this.state.viewedEvents.forEach(eventId => {
+            const event = this.state.allEvents.find(e => e.event_id === eventId);
+            if (event) {
+                const marker = MapManager.eventMarkers[event.event_id];
+                if (marker) {
+                    const weaponType = DataProcessor.getWeaponType(event);
+                    const side = DataProcessor.detectSide(event);
+                    marker.setIcon(MapManager.getMarkerIcon(weaponType, side, true));
+                }
+            }
+        });
+    },
+
+    onMarkerClick: function(event, latLng) {
+        this.state.selectedEventId = event.event_id;
+        this.state.viewedEvents.add(event.event_id);
+        StorageManager.save(this.state.viewedEvents, this.state.favorites);
+        
+        // Update marker icon to gray
+        const weaponType = DataProcessor.getWeaponType(event);
+        const side = DataProcessor.detectSide(event);
+        MapManager.updateMarkerIcon(event.event_id, weaponType, side, true);
+        
+        UIManager.showEventDetail(event, this.state);
+        UIManager.updateFeedActiveItem(event.event_id);
+        MapManager.setSelectedEvent(event.event_id);
+        
+        // Draw line from marker to side panel
+        if (latLng) {
+            MapManager.drawSelectionLine(latLng);
+        }
+        
+        // Update URL and meta tags
+        const url = `?event=${event.event_id}`;
+        window.history.pushState(null, '', url);
+        this.updateMetaTags(event);
+    },
+
+    applyFilters: function() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        this.state.filteredEvents = this.state.allEvents.filter(event => {
+            if (searchTerm && !JSON.stringify(event).toLowerCase().includes(searchTerm)) return false;
+            if (startDate && event.event_date < startDate) return false;
+            if (endDate && event.event_date > endDate) return false;
+            
+            // War crime filter
+            if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
+            if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
+            
+            // Modal selections
+            const ms = this.state.modalSelections;
+            if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
+            if (ms.locations.size > 0 && !ms.locations.has(event.event_location)) return false;
+            if (ms.entities.size > 0) {
+                if (!event.osint_entities) return false;
+                const entities = event.osint_entities.split(',').map(ent => ent.trim());
+                if (!entities.some(entity => ms.entities.has(entity))) return false;
+            }
+            
+            return true;
+        });
+        
+        this.render();
+    },
+
+    resetAllFilters: function() {
+        const totalEvents = this.state.allEvents.length;
+        if (confirm(`🔄 Reset all filters and show all ${totalEvents} events?`)) {
+            // Clear input fields
+            document.getElementById('searchInput').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            // Reset modal selections
+            this.state.modalSelections = { 
+                events: new Set(), 
+                locations: new Set(), 
+                entities: new Set() 
+            };
+            
+            // Reset war crime filter
+            this.state.warCrimeFilter = 'all';
+            document.getElementById('wc-all').checked = true;
+            
+            // Reset filtered events
+            this.state.filteredEvents = this.state.allEvents;
+            this.render();
+            
+            // Clear side panel
+            const panel = document.getElementById('sidePanel');
+            panel.classList.add('empty');
+            panel.classList.remove('has-connection');
+            panel.innerHTML = `
+                <div>
+                    <div style="font-size: 48px; margin-bottom: 20px;">📍</div>
+                    <div>Click on any marker to view event details</div>
+                </div>
+            `;
+            
+            // Clear selection line
+            if (MapManager.selectionLine) {
+                MapManager.map.removeLayer(MapManager.selectionLine);
+                MapManager.selectionLine = null;
+            }
+            
+            this.state.selectedEventId = null;
+            MapManager.selectedEventId = null;
+        }
+    },
+
+    handleUrlParams: function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        const favoritesParam = urlParams.get('favorites');
+        
+        if (favoritesParam) {
+            const favIds = favoritesParam.split(',');
+            favIds.forEach(id => this.state.favorites.add(id));
+            StorageManager.save(this.state.viewedEvents, this.state.favorites);
+        }
+        
+        if (eventId) {
+            setTimeout(() => {
+                const event = this.state.allEvents.find(e => e.event_id === eventId);
+                if (event && event.event_lat && event.event_lng) {
+                    // Update meta tags for link preview
+                    this.updateMetaTags(event);
+                    
+                    // Get marker
+                    const marker = MapManager.eventMarkers[eventId];
+                    if (marker) {
+                        const latLng = marker.getLatLng();
+                        
+                        // Center map on marker
+                        MapManager.map.setView(latLng, 12);
+                        
+                        // Trigger marker click - this will:
+                        // 1. Show event details
+                        // 2. Draw the line automatically
+                        // 3. Update feed active item
+                        this.onMarkerClick(event, latLng);
+                    }
+                }
+            }, 1000);
+        }
+    },
+
+    updateMetaTags: function(event) {
+        // Update page title
+        document.title = `${event.event_name || 'Event'} - OSINT Database`;
+        
+        // Get SHORT description from event analysis or description
+        let shortDescription = '';
+        
+        // Try to get summary from multimodal analysis
+        if (event.multimodal_analysis) {
+            const analysis = DataProcessor.parseMultimodalAnalysis(event.multimodal_analysis);
+            if (analysis.summary) {
+                // Extract first meaningful sentence
+                const sentences = analysis.summary.split(/[.!?]\s+/);
+                shortDescription = sentences[0] || analysis.summary.substring(0, 200);
+            }
+        }
+        
+        // Fallback to event_description or translated_text
+        if (!shortDescription) {
+            shortDescription = event.event_description || event.translated_text || event.message_text || 'View this OSINT event on the interactive map';
+        }
+        
+        // Trim to 200 characters for WhatsApp/social media previews
+        shortDescription = shortDescription.substring(0, 200).trim();
+        if (shortDescription.length === 200 && event.multimodal_analysis) {
+            shortDescription += '...';
+        }
+        
+        // Update Open Graph tags
+        const ogTitle = document.getElementById('og-title');
+        const ogDesc = document.getElementById('og-description');
+        const ogUrl = document.getElementById('og-url');
+        
+        if (ogTitle) ogTitle.setAttribute('content', `${event.event_name || 'Event'} - ${event.event_location || 'Location Unknown'}`);
+        if (ogDesc) ogDesc.setAttribute('content', shortDescription);
+        if (ogUrl) ogUrl.setAttribute('content', window.location.href);
+        
+        // Update Twitter Card tags
+        const twitterTitle = document.getElementById('twitter-title');
+        const twitterDesc = document.getElementById('twitter-description');
+        
+        if (twitterTitle) twitterTitle.setAttribute('content', `${event.event_name || 'Event'} - ${event.event_location || 'Location Unknown'}`);
+        if (twitterDesc) twitterDesc.setAttribute('content', shortDescription);
+        
+        console.log('✅ Meta tags updated:', shortDescription.substring(0, 50) + '...');
+    },
+
+    handleFileUpload: function(event) {
+        const file = event.target.files[0];
+        if (file && file.name.endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csv = e.target.result;
+                Papa.parse(csv, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        if (results.data && results.data.length > 0) {
+                            this.state.allEvents = this.processEvents(results.data);
+                            this.state.filteredEvents = this.state.allEvents;
+                            this.render();
+                            document.getElementById('fileUploadUI').style.display = 'none';
+                        } else {
+                            this.showError('CSV file is empty or invalid');
+                        }
+                    }
+                });
+            };
+            reader.readAsText(file);
+        } else {
+            alert('Please select a valid CSV file');
+        }
+    },
+
+    showError: function(message) {
+        document.getElementById('stats').innerHTML = `
+            <div style="background: #e74c3c; color: white; padding: 20px; border-radius: 10px; width: 100%;">
+                <strong>⚠️ Error:</strong> ${message}
+                <br><br>
+                Please upload the tapahtumat.csv file below.
+            </div>
+        `;
+        document.getElementById('fileUploadUI').style.display = 'block';
+    }
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+});
