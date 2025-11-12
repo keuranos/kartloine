@@ -181,6 +181,25 @@ const UIManager = {
 
         document.getElementById('stats').innerHTML = statsHtml;
 
+        // Add podcast player after stats
+        const statsContainer = document.getElementById('stats');
+        const existingPlayer = document.getElementById('podcastPlayerContainer');
+        if (!existingPlayer) {
+            const playerHTML = `
+                <div id="podcastPlayerContainer" class="podcast-player-container">
+                    <div class="podcast-arrow"></div>
+                    <div class="podcast-player">
+                        <div class="podcast-label">📻 Event Podcast</div>
+                        <audio controls preload="metadata">
+                            <source src="podcast.m4a" type="audio/mp4">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+            `;
+            statsContainer.insertAdjacentHTML('afterend', playerHTML);
+        }
+
         // Date range display removed - now integrated into timeline controls
     },
 
