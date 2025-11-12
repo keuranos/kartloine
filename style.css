@@ -588,6 +588,11 @@ body.feed-closed .bottom-controls {
     border-color: #43e97b;
 }
 
+.ctrl-btn.active {
+    background: #667eea;
+    color: white;
+}
+
 /* Time Slider Container - Redesigned with Toggle */
 .time-slider-container {
     background: rgba(255, 255, 255, 0.95);
@@ -604,26 +609,6 @@ body.feed-closed .bottom-controls {
 
 .time-slider-container.collapsed {
     display: none;
-}
-
-.timeline-toggle-btn {
-    position: absolute;
-    right: 10px;
-    top: 8px;
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    z-index: 100;
-    transition: all 0.3s;
-}
-
-.timeline-toggle-btn:hover {
-    background: #5568d3;
 }
 
 .time-controls-row {

@@ -181,18 +181,22 @@ const App = {
                 const container = document.getElementById('timeSliderContainer');
                 const mapContainer = document.querySelector('.map-container');
                 const sidePanel = document.querySelector('.side-panel');
-                const isCollapsed = container.classList.contains('collapsed');
+                const btn = document.getElementById('timelineToggleBtn');
+                const isVisible = container.style.display !== 'none' && !container.classList.contains('collapsed');
 
-                if (isCollapsed) {
-                    container.classList.remove('collapsed');
-                    mapContainer.classList.remove('timeline-hidden');
-                    sidePanel.classList.remove('timeline-hidden');
-                    timelineToggleBtn.textContent = 'Hide Timeline';
-                } else {
+                if (isVisible) {
+                    // Hide timeline
                     container.classList.add('collapsed');
                     mapContainer.classList.add('timeline-hidden');
                     sidePanel.classList.add('timeline-hidden');
-                    timelineToggleBtn.textContent = 'Show Timeline';
+                    btn.classList.remove('active');
+                } else {
+                    // Show timeline
+                    container.classList.remove('collapsed');
+                    container.style.display = 'flex';
+                    mapContainer.classList.remove('timeline-hidden');
+                    sidePanel.classList.remove('timeline-hidden');
+                    btn.classList.add('active');
                 }
 
                 // Update map size after transition
@@ -356,20 +360,25 @@ const App = {
     initTimeSlider: function() {
         // Get all dates and sort them
         const dates = [...new Set(this.state.allEvents.map(e => e.event_date).filter(d => d))].sort();
-        
+
         if (dates.length === 0) return;
-        
+
         this.state.dateRange = {
             min: dates[0],
             max: dates[dates.length - 1],
             current: dates[dates.length - 1],
             allDates: dates
         };
-        
-        // Show time slider container
+
+        // Show time slider container but keep it collapsed initially
         const container = document.getElementById('timeSliderContainer');
-        container.style.display = 'flex'; // Changed to flex for compact layout
-        
+        container.style.display = 'none';
+        container.classList.add('collapsed');
+
+        // Mark map and side panel as timeline-hidden initially
+        document.querySelector('.map-container').classList.add('timeline-hidden');
+        document.querySelector('.side-panel').classList.add('timeline-hidden');
+
         // Update display
         document.getElementById('timeSliderStartDate').textContent = this.state.dateRange.min;
         document.getElementById('timeSliderEndDate').textContent = this.state.dateRange.current;
