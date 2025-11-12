@@ -62,6 +62,14 @@ const App = {
             } else {
                 mainContainer.classList.remove('feed-closed');
             }
+
+            // Update map size and redraw selection line after transition
+            setTimeout(() => {
+                if (MapManager.map) {
+                    MapManager.map.invalidateSize();
+                    MapManager.updateSelectionLine();
+                }
+            }, 350); // Wait for CSS transition to complete
         });
 
         // Feed close button
@@ -73,6 +81,14 @@ const App = {
             panel.classList.add('closed');
             btn.classList.remove('feed-active');
             mainContainer.classList.add('feed-closed');
+
+            // Update map size and redraw selection line after transition
+            setTimeout(() => {
+                if (MapManager.map) {
+                    MapManager.map.invalidateSize();
+                    MapManager.updateSelectionLine();
+                }
+            }, 350); // Wait for CSS transition to complete
         });
 
         // Quick filter for recent events
