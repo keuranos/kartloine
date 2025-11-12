@@ -670,44 +670,83 @@ const App = {
         }
 
         if (eventId) {
+            console.log('🔗 Opening shared link for event:', eventId);
+
             setTimeout(() => {
                 const event = this.state.allEvents.find(e => e.event_id === eventId);
-                if (event && event.event_lat && event.event_lng) {
-                    // Update meta tags for link preview
-                    this.updateMetaTags(event);
 
-                    // Ensure event is in filtered events if not already
-                    if (!this.state.filteredEvents.includes(event)) {
-                        console.log('📍 Adding shared event to filtered events:', event.event_name);
-                        this.state.filteredEvents.push(event);
+                if (!event) {
+                    console.error('❌ Event not found in allEvents:', eventId);
+                    alert('Event not found. The event may have been removed or the link is invalid.');
+                    return;
+                }
 
-                        // Re-render to create the marker
-                        MapManager.render(this.state.filteredEvents, (e, latLng) => {
-                            this.onMarkerClick(e, latLng);
-                        }, this.state);
-                        UIManager.populateFeed(this.state.filteredEvents);
-                    }
+                if (!event.event_lat || !event.event_lng) {
+                    console.error('❌ Event has no coordinates:', eventId);
+                    alert('This event has no location data and cannot be displayed on the map.');
+                    return;
+                }
 
-                    // Get marker (should exist now)
-                    const marker = MapManager.eventMarkers[eventId];
-                    if (marker) {
-                        // Get lat/lng - handle both regular markers and circle markers
-                        const latLng = marker.getLatLng ? marker.getLatLng() : L.latLng(event.event_lat, event.event_lng);
+                console.log('✅ Event found:', event.event_name);
 
-                        // Center map on marker
-                        MapManager.map.setView(latLng, 12);
+                // Update meta tags for link preview
+                this.updateMetaTags(event);
 
-                        // Trigger marker click - this will:
-                        // 1. Show event details
-                        // 2. Draw the line automatically
-                        // 3. Update feed active item
-                        this.onMarkerClick(event, latLng);
-                    } else {
-                        console.error('❌ Marker not found for shared event:', eventId);
-                    }
+                // Ensure event is in filtered events
+                const wasFiltered = !this.state.filteredEvents.includes(event);
+                if (wasFiltered) {
+                    console.log('📍 Event was filtered out, adding to filtered events');
+                    this.state.filteredEvents.push(event);
+
+                    // Re-render to create the marker
+                    MapManager.render(this.state.filteredEvents, (e, latLng) => {
+                        this.onMarkerClick(e, latLng);
+                    }, this.state);
+                    UIManager.populateFeed(this.state.filteredEvents);
+
+                    // Wait for render to complete before accessing marker
+                    setTimeout(() => this.openSharedEvent(event, eventId), 100);
+                } else {
+                    console.log('✅ Event already in filtered events');
+                    this.openSharedEvent(event, eventId);
                 }
             }, 1000);
         }
+    },
+
+    openSharedEvent: function(event, eventId) {
+        console.log('📍 Opening shared event on map:', event.event_name);
+
+        // Get marker (should exist now)
+        const marker = MapManager.eventMarkers[eventId];
+
+        if (!marker) {
+            console.error('❌ Marker not found for event:', eventId);
+            console.log('Available markers:', Object.keys(MapManager.eventMarkers).length);
+            alert('Unable to display event on map. Please try refreshing the page.');
+            return;
+        }
+
+        console.log('✅ Marker found, opening event');
+
+        // Get lat/lng - handle both regular markers and circle markers
+        const latLng = marker.getLatLng ? marker.getLatLng() : L.latLng(event.event_lat, event.event_lng);
+
+        // Center map on marker with animation
+        MapManager.map.setView(latLng, 12, {
+            animate: true,
+            duration: 1
+        });
+
+        // Small delay before triggering click to ensure map has centered
+        setTimeout(() => {
+            // Trigger marker click - this will:
+            // 1. Show event details
+            // 2. Draw the line automatically
+            // 3. Update feed active item
+            this.onMarkerClick(event, latLng);
+            console.log('✅ Shared event opened successfully');
+        }, 300);
     },
 
     updateMetaTags: function(event) {
