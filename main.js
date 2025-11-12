@@ -161,16 +161,47 @@ const App = {
         // Auto-format date inputs as DD/MM/YYYY
         const manualStartDate = document.getElementById('manualStartDate');
         const manualEndDate = document.getElementById('manualEndDate');
-        
+
         if (manualStartDate) {
             manualStartDate.addEventListener('input', (e) => {
                 e.target.value = this.formatDateInput(e.target.value);
             });
         }
-        
+
         if (manualEndDate) {
             manualEndDate.addEventListener('input', (e) => {
                 e.target.value = this.formatDateInput(e.target.value);
+            });
+        }
+
+        // Timeline toggle button
+        const timelineToggleBtn = document.getElementById('timelineToggleBtn');
+        if (timelineToggleBtn) {
+            timelineToggleBtn.addEventListener('click', () => {
+                const container = document.getElementById('timeSliderContainer');
+                const mapContainer = document.querySelector('.map-container');
+                const sidePanel = document.querySelector('.side-panel');
+                const isCollapsed = container.classList.contains('collapsed');
+
+                if (isCollapsed) {
+                    container.classList.remove('collapsed');
+                    mapContainer.classList.remove('timeline-hidden');
+                    sidePanel.classList.remove('timeline-hidden');
+                    timelineToggleBtn.textContent = 'Hide Timeline';
+                } else {
+                    container.classList.add('collapsed');
+                    mapContainer.classList.add('timeline-hidden');
+                    sidePanel.classList.add('timeline-hidden');
+                    timelineToggleBtn.textContent = 'Show Timeline';
+                }
+
+                // Update map size after transition
+                setTimeout(() => {
+                    if (MapManager.map) {
+                        MapManager.map.invalidateSize();
+                        MapManager.updateSelectionLine();
+                    }
+                }, 350);
             });
         }
     },

@@ -18,7 +18,7 @@ body {
 
 .header {
     background: rgba(255, 255, 255, 0.95);
-    padding: 15px 20px;
+    padding: 10px 15px; /* Reduced from 15px 20px */
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
     position: fixed;
@@ -29,26 +29,27 @@ body {
 
 .header h1 {
     color: #667eea;
-    font-size: 24px;
+    font-size: 18px; /* Reduced from 24px */
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 /* CRITICAL: Z-index must be above filter button */
 .stats {
     display: flex;
-    gap: 15px;
+    gap: 8px; /* Reduced from 15px */
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: 0; /* Reduced from 10px */
     position: relative;
     z-index: 10;
 }
 
 .stat-card {
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 6px 12px; /* Reduced from 10px 20px */
+    border-radius: 6px; /* Reduced from 10px */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.3s;
 }
@@ -69,16 +70,16 @@ body {
 .stat-card.reset { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); color: white; }
 
 .stat-card .label {
-    font-size: 11px;
+    font-size: 9px; /* Reduced from 11px */
     opacity: 0.9;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .stat-card .value {
-    font-size: 24px;
+    font-size: 18px; /* Reduced from 24px */
     font-weight: bold;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 /* Date Range Display - BELOW stats */
@@ -110,11 +111,15 @@ body {
 .map-container {
     flex: 1;
     position: relative;
-    padding-top: 125px;
-    padding-left: 400px; /* Account for feed panel */
+    padding-top: 95px; /* Reduced from 125px */
+    padding-left: 320px; /* Reduced from 400px - smaller feed */
     background: #e8eaf0;
     width: 100%;
-    transition: padding-left 0.3s ease;
+    transition: padding-left 0.3s ease, padding-top 0.3s ease;
+}
+
+.map-container.timeline-hidden {
+    padding-top: 60px; /* Even smaller when timeline is hidden */
 }
 
 .main-container.feed-closed .map-container {
@@ -123,14 +128,19 @@ body {
 
 #map {
     width: 100%;
-    height: calc(100vh - 125px);
+    height: calc(100vh - 95px); /* Reduced from 125px */
     background: #e8eaf0;
     position: relative;
     z-index: 1;
+    transition: height 0.3s ease;
+}
+
+.map-container.timeline-hidden #map {
+    height: calc(100vh - 60px);
 }
 
 .side-panel {
-    width: 420px; /* Reduced from 450px for better fit on Full HD */
+    width: 360px; /* Reduced from 420px */
     background: white;
     box-shadow: -4px 0 15px rgba(0,0,0,0.1);
     overflow-y: auto;
@@ -138,8 +148,13 @@ body {
     flex-direction: column;
     z-index: 500;
     position: relative;
-    padding-top: 125px; /* Match map container - was 165px */
+    padding-top: 95px; /* Reduced from 125px */
     height: 100vh;
+    transition: padding-top 0.3s ease;
+}
+
+.side-panel.timeline-hidden {
+    padding-top: 60px;
 }
 
 .side-panel.empty {
@@ -191,7 +206,7 @@ body {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 400px;
+    width: 320px; /* Reduced from 400px */
     background: #1a1d2e;
     box-shadow: 4px 0 15px rgba(0,0,0,0.3);
     overflow-y: auto;
@@ -388,7 +403,7 @@ body {
 
 /* Event Detail Panel */
 .event-detail {
-    padding: 20px; /* Reduced from 30px for better fit */
+    padding: 15px; /* Reduced from 20px for better fit */
 }
 
 .event-detail-header {
@@ -527,33 +542,37 @@ body {
 /* Bottom Control Buttons - Adjust position with feed */
 .bottom-controls {
     position: fixed;
-    bottom: 20px;
-    left: 420px; /* Account for feed panel */
+    bottom: 15px; /* Reduced from 20px */
+    left: 340px; /* Adjusted for smaller feed (320px + 20px margin) */
     display: flex;
-    gap: 10px;
+    gap: 8px; /* Reduced from 10px */
     z-index: 1001;
     transition: left 0.3s ease;
 }
 
 .main-container.feed-closed ~ .bottom-controls,
 body.feed-closed .bottom-controls {
-    left: 20px; /* Move to left when feed is closed */
+    left: 15px; /* Move to left when feed is closed */
 }
 
 .ctrl-btn {
     background: rgba(255, 255, 255, 0.95);
     color: #333;
-    padding: 12px 20px;
+    padding: 8px 14px; /* Reduced from 12px 20px */
     border: 2px solid #667eea;
-    border-radius: 8px;
+    border-radius: 6px; /* Reduced from 8px */
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px; /* Reduced from 14px */
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
     transition: all 0.3s;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px; /* Reduced from 8px */
+}
+
+.ctrl-btn span {
+    font-size: 14px; /* Emoji size */
 }
 
 .ctrl-btn:hover {
@@ -569,16 +588,42 @@ body.feed-closed .bottom-controls {
     border-color: #43e97b;
 }
 
-/* Time Slider Container - Redesigned */
+/* Time Slider Container - Redesigned with Toggle */
 .time-slider-container {
     background: rgba(255, 255, 255, 0.95);
-    padding: 12px 20px;
+    padding: 8px 15px; /* Reduced from 12px 20px */
     margin: 0;
     border-radius: 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px; /* Reduced from 10px */
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.time-slider-container.collapsed {
+    display: none;
+}
+
+.timeline-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s;
+}
+
+.timeline-toggle-btn:hover {
+    background: #5568d3;
 }
 
 .time-controls-row {
@@ -649,10 +694,10 @@ body.feed-closed .bottom-controls {
     background: #667eea;
     color: white;
     border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
+    padding: 4px 10px; /* Reduced from 6px 14px */
+    border-radius: 4px; /* Reduced from 6px */
     font-weight: 600;
-    font-size: 13px;
+    font-size: 11px; /* Reduced from 13px */
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -715,13 +760,13 @@ body.feed-closed .bottom-controls {
 .bottom-filter-panel {
     position: fixed;
     bottom: 0;
-    left: 400px; /* Account for feed panel */
-    right: 420px; /* Account for side panel */
+    left: 320px; /* Account for smaller feed panel */
+    right: 360px; /* Account for smaller side panel */
     background: white;
     box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
     z-index: 8; /* Below stats, above map */
     transform: translateY(100%);
-    transition: transform 0.3s, left 0.3s ease;
+    transition: transform 0.3s, left 0.3s ease, right 0.3s ease;
 }
 
 .main-container.feed-closed ~ .bottom-filter-panel,
