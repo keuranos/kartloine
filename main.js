@@ -662,33 +662,48 @@ const App = {
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event');
         const favoritesParam = urlParams.get('favorites');
-        
+
         if (favoritesParam) {
             const favIds = favoritesParam.split(',');
             favIds.forEach(id => this.state.favorites.add(id));
             StorageManager.save(this.state.viewedEvents, this.state.favorites);
         }
-        
+
         if (eventId) {
             setTimeout(() => {
                 const event = this.state.allEvents.find(e => e.event_id === eventId);
                 if (event && event.event_lat && event.event_lng) {
                     // Update meta tags for link preview
                     this.updateMetaTags(event);
-                    
-                    // Get marker
+
+                    // Ensure event is in filtered events if not already
+                    if (!this.state.filteredEvents.includes(event)) {
+                        console.log('📍 Adding shared event to filtered events:', event.event_name);
+                        this.state.filteredEvents.push(event);
+
+                        // Re-render to create the marker
+                        MapManager.render(this.state.filteredEvents, (e, latLng) => {
+                            this.onMarkerClick(e, latLng);
+                        }, this.state);
+                        UIManager.populateFeed(this.state.filteredEvents);
+                    }
+
+                    // Get marker (should exist now)
                     const marker = MapManager.eventMarkers[eventId];
                     if (marker) {
-                        const latLng = marker.getLatLng();
-                        
+                        // Get lat/lng - handle both regular markers and circle markers
+                        const latLng = marker.getLatLng ? marker.getLatLng() : L.latLng(event.event_lat, event.event_lng);
+
                         // Center map on marker
                         MapManager.map.setView(latLng, 12);
-                        
+
                         // Trigger marker click - this will:
                         // 1. Show event details
                         // 2. Draw the line automatically
                         // 3. Update feed active item
                         this.onMarkerClick(event, latLng);
+                    } else {
+                        console.error('❌ Marker not found for shared event:', eventId);
                     }
                 }
             }, 1000);
