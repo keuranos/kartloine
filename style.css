@@ -108,6 +108,20 @@ body {
     background: #e8eaf0;
 }
 
+/* Leaflet zoom controls positioning */
+.leaflet-top.leaflet-left {
+    top: 105px !important; /* Below header when timeline is hidden */
+    transition: top 0.3s ease;
+}
+
+.map-container:not(.timeline-hidden) .leaflet-top.leaflet-left {
+    top: 105px !important; /* Below header + timeline */
+}
+
+.map-container.timeline-hidden .leaflet-top.leaflet-left {
+    top: 70px !important; /* Below smaller header when timeline hidden */
+}
+
 .map-container {
     flex: 1;
     position: relative;
@@ -146,7 +160,7 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    z-index: 500;
+    z-index: 900; /* Below header (1000) but above map */
     position: fixed;
     right: 0;
     top: 95px; /* Start below header */
@@ -183,7 +197,7 @@ body {
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 40px rgba(102, 126, 234, 0.3);
     opacity: 0;
     transition: opacity 0.3s, left 0.3s ease;
-    z-index: 1000;
+    z-index: 1100; /* Above everything including header */
 }
 
 .main-container.feed-closed .side-panel::before {
