@@ -171,18 +171,6 @@ const UIManager = {
                 <div class="label">FAVORITES</div>
                 <div class="value">${favoritesCount}</div>
             </div>
-            <div class="stat-card network" onclick="UIManager.openFilterPreferencesModal()">
-                <div class="label">SAVE/LOAD VIEW</div>
-                <div class="value">💾</div>
-            </div>
-            <div class="stat-card favorites" onclick="UIManager.openAboutModal()" style="background: linear-gradient(135deg, #9c88ff 0%, #5f27cd 100%);">
-                <div class="label">ABOUT</div>
-                <div class="value">ℹ️</div>
-            </div>
-            <div class="stat-card reset" onclick="App.resetAllFilters()">
-                <div class="label">RESET ALL</div>
-                <div class="value">🔄</div>
-            </div>
         `;
 
         document.getElementById('stats').innerHTML = statsHtml;

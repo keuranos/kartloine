@@ -151,7 +151,8 @@ body {
 .podcast-player-inline audio::-webkit-media-controls-timeline,
 .podcast-player-inline audio::-webkit-media-controls-current-time-display,
 .podcast-player-inline audio::-webkit-media-controls-time-remaining-display {
-    filter: brightness(0); /* Dark/black controls */
+    filter: brightness(0) contrast(2); /* Very dark/black controls with high contrast */
+    opacity: 0.9;
 }
 
 /* Main Layout - Fixed right side panel */
