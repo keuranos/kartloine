@@ -119,12 +119,17 @@ const UIManager = {
                 e.osint_entities.split(',').forEach(ent => entities.add(ent.trim()));
             }
         });
-        
+
         const totalEvents = state.allEvents.length;
         const warCrimes = filteredEvents.filter(e => e.__wcResult && e.__wcResult.tag === 'pos').length;
+
+        // Count systems and units
+        const systemsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'system').length;
+        const unitsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'unit').length;
+
         const dailyReports = state.dailyReports.length;
         const favoritesCount = state.favorites.size;
-        
+
         const statsHtml = `
             <div class="stat-card total" onclick="UIManager.openModal('events')">
                 <div class="label">TOTAL EVENTS</div>
@@ -141,6 +146,14 @@ const UIManager = {
             <div class="stat-card war-crimes" onclick="UIManager.openModal('warCrimes')">
                 <div class="label">WAR CRIMES</div>
                 <div class="value">${warCrimes}</div>
+            </div>
+            <div class="stat-card total" onclick="EntityFilters.openSystemsModal()" style="background: linear-gradient(135deg, #667eea 0%, #43e97b 100%);">
+                <div class="label">SYSTEMS</div>
+                <div class="value">${systemsCount}</div>
+            </div>
+            <div class="stat-card locations" onclick="EntityFilters.openUnitsModal()" style="background: linear-gradient(135deg, #fa709a 0%, #764ba2 100%);">
+                <div class="label">UNITS</div>
+                <div class="value">${unitsCount}</div>
             </div>
             <div class="stat-card reports" onclick="UIManager.openModal('reports')">
                 <div class="label">DAILY REPORTS</div>
@@ -159,9 +172,9 @@ const UIManager = {
                 <div class="value">🔄</div>
             </div>
         `;
-        
+
         document.getElementById('stats').innerHTML = statsHtml;
-        
+
         // Date range display removed - now integrated into timeline controls
     },
 

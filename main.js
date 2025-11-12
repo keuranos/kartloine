@@ -20,23 +20,27 @@ const App = {
     },
 
     // Initialize application
-    init: function() {
+    init: async function() {
         console.log('🚀 Initializing OSINT Dashboard...');
-        
+
+        // Load entity definitions first
+        console.log('📥 Loading entity definitions...');
+        await EntityManager.load();
+
         // Load saved data
         const storage = StorageManager.load();
         this.state.viewedEvents = storage.viewedEvents;
         this.state.favorites = storage.favorites;
-        
+
         // Initialize components
         MapManager.init();
-        
+
         // Setup event listeners
         this.setupEventListeners();
-        
+
         // Load events
         this.loadEvents();
-        
+
         // Handle URL parameters - will auto-draw line for shared links
         setTimeout(() => this.handleUrlParams(), 500);
     },
@@ -297,6 +301,16 @@ const App = {
                             this.state.allEvents = this.processEvents(results.data);
                             this.state.filteredEvents = this.state.allEvents;
                             console.log('✅ Events processed:', this.state.allEvents.length);
+
+                            // Precompute entity matches for all events
+                            if (EntityManager.isLoaded) {
+                                EntityManager.precomputeMatches(this.state.allEvents);
+
+                                // Initialize entity filters UI
+                                EntityFilters.init(this.state.allEvents);
+                            } else {
+                                console.warn('⚠️ EntityManager not loaded, skipping entity matching');
+                            }
 
                             this.initTimeSlider();
                             this.render();
@@ -564,16 +578,19 @@ const App = {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
-        
+
         this.state.filteredEvents = this.state.allEvents.filter(event => {
             if (searchTerm && !JSON.stringify(event).toLowerCase().includes(searchTerm)) return false;
             if (startDate && event.event_date < startDate) return false;
             if (endDate && event.event_date > endDate) return false;
-            
+
             // War crime filter
             if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
             if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
-            
+
+            // Entity filters (systems & units)
+            if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;
+
             // Modal selections
             const ms = this.state.modalSelections;
             if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
@@ -583,10 +600,10 @@ const App = {
                 const entities = event.osint_entities.split(',').map(ent => ent.trim());
                 if (!entities.some(entity => ms.entities.has(entity))) return false;
             }
-            
+
             return true;
         });
-        
+
         this.render();
     },
 
@@ -597,18 +614,24 @@ const App = {
             document.getElementById('searchInput').value = '';
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
-            
+
             // Reset modal selections
-            this.state.modalSelections = { 
-                events: new Set(), 
-                locations: new Set(), 
-                entities: new Set() 
+            this.state.modalSelections = {
+                events: new Set(),
+                locations: new Set(),
+                entities: new Set()
             };
-            
+
             // Reset war crime filter
             this.state.warCrimeFilter = 'all';
             document.getElementById('wc-all').checked = true;
-            
+
+            // Reset entity filters
+            if (EntityManager.isLoaded) {
+                EntityFilters.clearAllSystems();
+                EntityFilters.clearAllUnits();
+            }
+
             // Reset filtered events
             this.state.filteredEvents = this.state.allEvents;
             this.render();

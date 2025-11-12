@@ -203,6 +203,50 @@
         </div>
     </div>
 
+    <div id="systemsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🚀 Weapon Systems Filter</h2>
+                <button class="modal-close" onclick="closeModal('systemsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="systemsFilterSearch" class="filter-search-box" placeholder="🔍 Search systems...">
+            </div>
+            <div class="filter-controls">
+                <button class="select-all" onclick="EntityFilters.selectAllSystems()">Select All</button>
+                <button class="clear-all" onclick="EntityFilters.clearAllSystems()">Clear All</button>
+            </div>
+            <div class="modal-list">
+                <div id="systemsTagsContainer" class="filter-tags-container"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="EntityFilters.applySystemsFilter()">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="unitsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🪖 Military Units Filter</h2>
+                <button class="modal-close" onclick="closeModal('unitsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="unitsFilterSearch" class="filter-search-box" placeholder="🔍 Search units...">
+            </div>
+            <div class="filter-controls">
+                <button class="select-all" onclick="EntityFilters.selectAllUnits()">Select All</button>
+                <button class="clear-all" onclick="EntityFilters.clearAllUnits()">Clear All</button>
+            </div>
+            <div class="modal-list">
+                <div id="unitsTagsContainer" class="filter-tags-container"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="EntityFilters.applyUnitsFilter()">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
     <div id="reportsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -285,6 +329,8 @@
     <script src="warCrimeDetector.js"></script>
     <script src="dataProcessor.js"></script>
     <script src="storageManager.js"></script>
+    <script src="entities.js"></script>
+    <script src="entityFilters.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
