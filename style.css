@@ -124,34 +124,34 @@ body {
     margin-right: 2px;
 }
 
-/* Compact audio player - only play/pause visible */
+/* Compact but usable audio player */
 .podcast-player-inline audio {
-    height: 28px;
-    width: 45px; /* Very narrow - just play button */
+    height: 30px;
+    width: 200px; /* Wider - show play/pause and timeline */
     outline: none;
 }
 
-/* Hide all controls except play/pause button */
 .podcast-player-inline audio::-webkit-media-controls-enclosure {
-    max-width: 45px;
+    max-width: 200px;
 }
 
 .podcast-player-inline audio::-webkit-media-controls-panel {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
 }
 
-.podcast-player-inline audio::-webkit-media-controls-timeline,
-.podcast-player-inline audio::-webkit-media-controls-current-time-display,
-.podcast-player-inline audio::-webkit-media-controls-time-remaining-display,
+/* Hide only volume controls to keep it compact */
 .podcast-player-inline audio::-webkit-media-controls-volume-slider,
 .podcast-player-inline audio::-webkit-media-controls-mute-button {
     display: none !important;
 }
 
-.podcast-player-inline audio::-webkit-media-controls-play-button {
-    filter: brightness(0) invert(1); /* White play button */
-    margin: 0;
-    padding: 0;
+/* White controls for visibility on green background */
+.podcast-player-inline audio::-webkit-media-controls-play-button,
+.podcast-player-inline audio::-webkit-media-controls-timeline,
+.podcast-player-inline audio::-webkit-media-controls-current-time-display,
+.podcast-player-inline audio::-webkit-media-controls-time-remaining-display {
+    filter: brightness(0) invert(1); /* White controls */
 }
 
 /* Main Layout - Fixed right side panel */
