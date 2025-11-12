@@ -570,8 +570,9 @@ const App = {
             MapManager.drawSelectionLine(latLng);
         }
         
-        // Update URL and meta tags
-        const url = `?event=${event.event_id}`;
+        // Update URL and meta tags (include current zoom level)
+        const currentZoom = MapManager.map.getZoom();
+        const url = `?event=${event.event_id}&zoom=${currentZoom}`;
         window.history.pushState(null, '', url);
         this.updateMetaTags(event);
     },
@@ -663,7 +664,11 @@ const App = {
     handleUrlParams: function() {
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event');
+        const zoomParam = urlParams.get('zoom');
         const favoritesParam = urlParams.get('favorites');
+
+        // Parse zoom level (default to 12 if not provided)
+        const targetZoom = zoomParam ? parseInt(zoomParam, 10) : 12;
 
         if (favoritesParam) {
             const favIds = favoritesParam.split(',');
@@ -672,7 +677,7 @@ const App = {
         }
 
         if (eventId) {
-            console.log('🔗 Opening shared link for event:', eventId);
+            console.log('🔗 Opening shared link for event:', eventId, 'with zoom:', targetZoom);
 
             setTimeout(() => {
                 const event = this.state.allEvents.find(e => e.event_id === eventId);
@@ -707,17 +712,19 @@ const App = {
                     UIManager.populateFeed(this.state.filteredEvents);
 
                     // Wait for render to complete before accessing marker
-                    setTimeout(() => this.openSharedEvent(event, eventId), 100);
+                    setTimeout(() => this.openSharedEvent(event, eventId, targetZoom), 100);
                 } else {
                     console.log('✅ Event already in filtered events');
-                    this.openSharedEvent(event, eventId);
+                    this.openSharedEvent(event, eventId, targetZoom);
                 }
             }, 1000);
         }
     },
 
-    openSharedEvent: function(event, eventId) {
-        console.log('📍 Opening shared event on map:', event.event_name);
+    openSharedEvent: function(event, eventId, targetZoom) {
+        // Default to zoom 12 if not provided
+        const zoom = targetZoom || 12;
+        console.log('📍 Opening shared event on map:', event.event_name, 'at zoom level', zoom);
 
         // Get marker (should exist now)
         const marker = MapManager.eventMarkers[eventId];
@@ -734,8 +741,8 @@ const App = {
         // Get lat/lng - handle both regular markers and circle markers
         const latLng = marker.getLatLng ? marker.getLatLng() : L.latLng(event.event_lat, event.event_lng);
 
-        // Center map on marker with animation
-        MapManager.map.setView(latLng, 12, {
+        // Center map on marker with animation at the specified zoom level
+        MapManager.map.setView(latLng, zoom, {
             animate: true,
             duration: 1
         });
@@ -747,7 +754,7 @@ const App = {
             // 2. Draw the line automatically
             // 3. Update feed active item
             this.onMarkerClick(event, latLng);
-            console.log('✅ Shared event opened successfully');
+            console.log('✅ Shared event opened successfully at zoom', zoom);
         }, 300);
     },
 

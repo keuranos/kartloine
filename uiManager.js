@@ -78,7 +78,9 @@ const UIManager = {
             return;
         }
 
-        const url = `${window.location.origin}${window.location.pathname}?event=${eventId}`;
+        // Get current map zoom level
+        const currentZoom = MapManager.map.getZoom();
+        const url = `${window.location.origin}${window.location.pathname}?event=${eventId}&zoom=${currentZoom}`;
 
         // Try to copy to clipboard
         if (navigator.clipboard && navigator.clipboard.writeText) {
