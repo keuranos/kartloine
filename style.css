@@ -867,8 +867,9 @@ body.feed-closed .bottom-filter-panel {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.85); /* Darker backdrop */
     animation: fadeIn 0.3s;
+    overflow: hidden; /* Prevent page scrolling behind modal */
 }
 
 @keyframes fadeIn {
@@ -1044,11 +1045,11 @@ body.feed-closed .bottom-filter-panel {
 
 /* Report Content Styling - Completely Redesigned */
 .report-content {
-    padding: 20px;
+    padding: 15px; /* Reduced from 20px */
     background: white;
     border-radius: 10px;
-    line-height: 1.7;
-    font-size: 13px; /* Reduced from 15px */
+    line-height: 1.5; /* Reduced from 1.7 */
+    font-size: 12px; /* Reduced from 13px */
     color: #333;
     max-height: 500px;
     overflow-y: auto;
@@ -1056,64 +1057,66 @@ body.feed-closed .bottom-filter-panel {
 
 .report-content h1 {
     color: #667eea;
-    font-size: 16px; /* Reduced from default */
-    margin: 20px 0 10px;
+    font-size: 14px; /* Reduced from 16px */
+    margin: 15px 0 8px; /* Reduced margins */
     border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 6px;
+    padding-bottom: 5px;
 }
 
 .report-content h2 {
     color: #764ba2;
-    font-size: 15px; /* Reduced from 20px */
-    margin: 18px 0 10px;
+    font-size: 13px; /* Reduced from 15px */
+    margin: 12px 0 8px; /* Reduced margins */
     border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 5px;
+    padding-bottom: 4px;
 }
 
 .report-content h3 {
     color: #667eea;
-    font-size: 14px; /* Reduced from 18px */
-    margin: 15px 0 8px;
+    font-size: 12px; /* Reduced from 14px */
+    margin: 10px 0 6px; /* Reduced margins */
 }
 
 .report-content strong {
     color: #667eea;
-    font-weight: 600; /* Reduced from 700 */
+    font-weight: 600;
 }
 
 .report-content ul {
-    margin: 10px 0 10px 20px;
+    margin: 8px 0 8px 18px; /* Reduced margins and indentation */
 }
 
 .report-content li {
-    margin: 6px 0;
-    line-height: 1.6;
+    margin: 4px 0; /* Reduced from 6px */
+    line-height: 1.4;
 }
 
 .report-content p {
-    margin: 10px 0;
-    line-height: 1.7;
+    margin: 8px 0; /* Reduced from 10px */
+    line-height: 1.5;
 }
 
 .report-content table {
     width: 100%;
     border-collapse: collapse;
-    margin: 15px 0;
-    font-size: 12px;
+    margin: 10px 0; /* Reduced from 15px */
+    font-size: 11px; /* Reduced from 12px */
 }
 
 .report-content table th {
     background: #f0f0f0;
-    padding: 8px;
+    padding: 6px; /* Reduced from 8px */
     text-align: left;
     font-weight: 600;
     border: 1px solid #ddd;
+    font-size: 11px;
 }
 
 .report-content table td {
-    padding: 8px;
+    padding: 6px; /* Reduced from 8px */
     border: 1px solid #ddd;
     vertical-align: top;
+    font-size: 11px;
 }
 
 /* Network Graph Container */
