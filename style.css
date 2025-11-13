@@ -1154,16 +1154,13 @@ body.feed-closed .bottom-filter-panel {
     transform: translateY(-2px);
 }
 
-/* Report Content Styling - Completely Redesigned */
+/* Report Content Styling - Outer container (no scrolling) */
 .report-content {
-    padding: 15px; /* Reduced from 20px */
-    background: white;
-    border-radius: 10px;
-    line-height: 1.5; /* Reduced from 1.7 */
-    font-size: 12px; /* Reduced from 13px */
-    color: #333;
-    max-height: 500px;
-    overflow-y: auto;
+    /* Container for report - no scrolling here, inner wrapper handles it */
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .report-content h1 {
@@ -1716,6 +1713,9 @@ body.map-moving .flag-marker {
     background: #ffffff;
     border-radius: 12px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .report-header {
@@ -1733,7 +1733,7 @@ body.map-moving .flag-marker {
 
 .report-content-wrapper {
     padding: 30px;
-    max-height: 600px;
+    flex: 1;
     overflow-y: auto;
     line-height: 1.8;
     color: #333;
