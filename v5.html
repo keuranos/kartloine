@@ -82,8 +82,8 @@
 
     <!-- Control Buttons Container -->
     <div class="bottom-controls">
-        <button class="ctrl-btn" id="filterToggleBtn">
-            <span style="font-size: 18px;">🔍</span> Filters
+        <button class="ctrl-btn" id="searchToggleBtn">
+            <span style="font-size: 18px;">🔍</span> Search
         </button>
         <button class="ctrl-btn feed-active" id="feedToggleBtn">
             <span style="font-size: 18px;">📱</span> Feed
@@ -157,26 +157,48 @@
         </div>
     </div>
 
-    <!-- Bottom Filter Panel -->
-    <div class="bottom-filter-panel" id="bottomFilterPanel">
+    <!-- Bottom Search Panel -->
+    <div class="bottom-filter-panel" id="bottomSearchPanel">
         <div class="filter-panel-content">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>Search Events</label>
-                    <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
-                </div>
-                <div class="filter-group" style="max-width: 200px;">
-                    <label>Start Date</label>
-                    <input type="date" id="startDate">
-                </div>
-                <div class="filter-group" style="max-width: 200px;">
-                    <label>End Date</label>
-                    <input type="date" id="endDate">
-                </div>
+            <div class="search-tabs">
+                <button class="search-tab active" id="locationSearchTab">📍 Search Location</button>
+                <button class="search-tab" id="eventSearchTab">📋 Search Events</button>
             </div>
-            <div class="filter-actions">
-                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-                <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
+
+            <!-- Location Search -->
+            <div class="search-section" id="locationSearchSection">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search Place (e.g., "Kiev", "Kyiv, Ukraine", "Mariupol")</label>
+                        <input type="text" id="locationSearchInput" placeholder="Enter city or place name...">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="searchLocationBtn">🔍 Search Location</button>
+                </div>
+                <div id="locationSearchResults" class="search-results"></div>
+            </div>
+
+            <!-- Event Search -->
+            <div class="search-section" id="eventSearchSection" style="display: none;">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search Events</label>
+                        <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+                    </div>
+                    <div class="filter-group" style="max-width: 200px;">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="filter-group" style="max-width: 200px;">
+                        <label>End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+                    <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
+                </div>
             </div>
         </div>
     </div>
@@ -402,9 +424,11 @@
                 <div style="padding: 40px; text-align: center;">
                     <h3 style="font-size: 24px; color: #667eea; margin-bottom: 20px;">AI makes mistakes. So do you.</h3>
                     <p style="font-size: 18px; color: #333; margin-bottom: 30px; line-height: 1.6;">Together we can make them less?</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.8;">
+                        This is a static development preview of realtime open data collection, analysis and visualization pipeline.
+                    </p>
                     <p style="font-size: 14px; color: #666; margin-bottom: 30px; line-height: 1.8;">
-                        This is a static demo of realtime open data collection, analysis and visualization pipeline.<br>
-                        Data is updated irregularly.
+                        Data is updated irregularly and most surely contains some errors (ex. with datetime, geolocation) but we are getting better everyday.
                     </p>
                     <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
                         <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">Vasama Systems 2025</p>

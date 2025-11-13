@@ -45,9 +45,36 @@ const App = {
     },
 
     setupEventListeners: function() {
-        // Filter toggle
-        document.getElementById('filterToggleBtn').addEventListener('click', () => {
-            document.getElementById('bottomFilterPanel').classList.toggle('open');
+        // Search toggle
+        document.getElementById('searchToggleBtn').addEventListener('click', () => {
+            document.getElementById('bottomSearchPanel').classList.toggle('open');
+        });
+
+        // Search tabs
+        document.getElementById('locationSearchTab').addEventListener('click', () => {
+            document.getElementById('locationSearchTab').classList.add('active');
+            document.getElementById('eventSearchTab').classList.remove('active');
+            document.getElementById('locationSearchSection').style.display = 'block';
+            document.getElementById('eventSearchSection').style.display = 'none';
+        });
+
+        document.getElementById('eventSearchTab').addEventListener('click', () => {
+            document.getElementById('eventSearchTab').classList.add('active');
+            document.getElementById('locationSearchTab').classList.remove('active');
+            document.getElementById('eventSearchSection').style.display = 'block';
+            document.getElementById('locationSearchSection').style.display = 'none';
+        });
+
+        // Location search
+        document.getElementById('searchLocationBtn').addEventListener('click', () => {
+            this.searchLocation();
+        });
+
+        // Allow Enter key in location search
+        document.getElementById('locationSearchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.searchLocation();
+            }
         });
 
         // Feed toggle
@@ -120,7 +147,7 @@ const App = {
         // Apply filters
         document.getElementById('applyFiltersBtn').addEventListener('click', () => {
             this.applyFilters();
-            document.getElementById('bottomFilterPanel').classList.remove('open');
+            document.getElementById('bottomSearchPanel').classList.remove('open');
         });
 
         // Reset filters
@@ -594,6 +621,86 @@ const App = {
         const url = `?event=${event.event_id}&zoom=${currentZoom}`;
         window.history.pushState(null, '', url);
         this.updateMetaTags(event);
+    },
+
+    searchLocation: async function() {
+        const query = document.getElementById('locationSearchInput').value.trim();
+        const resultsContainer = document.getElementById('locationSearchResults');
+
+        if (!query) {
+            resultsContainer.innerHTML = '<p style="color: #999; padding: 10px;">Please enter a location to search</p>';
+            return;
+        }
+
+        resultsContainer.innerHTML = '<p style="color: #667eea; padding: 10px;">🔍 Searching...</p>';
+
+        try {
+            // Use Nominatim (OpenStreetMap) geocoding API
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`, {
+                headers: {
+                    'User-Agent': 'OSINT-Event-Database'
+                }
+            });
+
+            if (!response.ok) throw new Error('Search failed');
+
+            const results = await response.json();
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p style="color: #999; padding: 10px;">No results found. Try a different location.</p>';
+                return;
+            }
+
+            // Display results
+            let html = '';
+            results.forEach(result => {
+                html += `
+                    <div class="search-result-item" onclick="App.centerMapOn(${result.lat}, ${result.lon}, '${result.display_name.replace(/'/g, "\\'")}')">
+                        <div class="search-result-name">${result.display_name}</div>
+                        <div class="search-result-details">📍 ${result.lat}, ${result.lon}</div>
+                    </div>
+                `;
+            });
+
+            resultsContainer.innerHTML = html;
+
+        } catch (error) {
+            console.error('Location search error:', error);
+            resultsContainer.innerHTML = '<p style="color: #ff4444; padding: 10px;">❌ Search failed. Please try again.</p>';
+        }
+    },
+
+    centerMapOn: function(lat, lon, name) {
+        if (MapManager.map) {
+            MapManager.map.setView([lat, lon], 12);
+            console.log(`📍 Centered map on: ${name}`);
+
+            // Close search panel
+            document.getElementById('bottomSearchPanel').classList.remove('open');
+
+            // Show notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: fadeIn 0.3s ease-in;
+            `;
+            notification.textContent = `📍 ${name}`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
     },
 
     applyFilters: function() {
