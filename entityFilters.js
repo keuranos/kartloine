@@ -20,8 +20,14 @@ const EntityFilters = {
 
         container.innerHTML = '';
 
+        let visibleCount = 0;
         systemKeys.forEach(key => {
             const count = systemCounts[key] || 0;
+
+            // Skip entities with 0 events
+            if (count === 0) return;
+
+            visibleCount++;
             const tag = document.createElement('button');
             tag.className = 'filter-tag';
             tag.setAttribute('data-system', key);
@@ -47,7 +53,7 @@ const EntityFilters = {
             container.appendChild(tag);
         });
 
-        console.log('✅ Systems filter UI built with', systemKeys.length, 'systems');
+        console.log('✅ Systems filter UI built with', visibleCount, 'systems (with events)');
     },
 
     // Build Units filter UI with tags
@@ -60,8 +66,14 @@ const EntityFilters = {
 
         container.innerHTML = '';
 
+        let visibleCount = 0;
         unitKeys.forEach(key => {
             const count = unitCounts[key] || 0;
+
+            // Skip entities with 0 events
+            if (count === 0) return;
+
+            visibleCount++;
             const tag = document.createElement('button');
             tag.className = 'filter-tag';
             tag.setAttribute('data-unit', key);
@@ -86,7 +98,7 @@ const EntityFilters = {
             container.appendChild(tag);
         });
 
-        console.log('✅ Units filter UI built with', unitKeys.length, 'units');
+        console.log('✅ Units filter UI built with', visibleCount, 'units (with events)');
     },
 
     // Setup search box handlers for filtering tags
