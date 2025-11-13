@@ -1161,70 +1161,6 @@ body.feed-closed .bottom-filter-panel {
     overflow: visible; /* Allow inner scrollbar to be visible */
 }
 
-.report-content h1 {
-    color: #667eea;
-    font-size: 14px; /* Reduced from 16px */
-    margin: 15px 0 8px; /* Reduced margins */
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 5px;
-}
-
-.report-content h2 {
-    color: #764ba2;
-    font-size: 13px; /* Reduced from 15px */
-    margin: 12px 0 8px; /* Reduced margins */
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 4px;
-}
-
-.report-content h3 {
-    color: #667eea;
-    font-size: 12px; /* Reduced from 14px */
-    margin: 10px 0 6px; /* Reduced margins */
-}
-
-.report-content strong {
-    color: #667eea;
-    font-weight: 600;
-}
-
-.report-content ul {
-    margin: 8px 0 8px 18px; /* Reduced margins and indentation */
-}
-
-.report-content li {
-    margin: 4px 0; /* Reduced from 6px */
-    line-height: 1.4;
-}
-
-.report-content p {
-    margin: 8px 0; /* Reduced from 10px */
-    line-height: 1.5;
-}
-
-.report-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10px 0; /* Reduced from 15px */
-    font-size: 11px; /* Reduced from 12px */
-}
-
-.report-content table th {
-    background: #f0f0f0;
-    padding: 6px; /* Reduced from 8px */
-    text-align: left;
-    font-weight: 600;
-    border: 1px solid #ddd;
-    font-size: 11px;
-}
-
-.report-content table td {
-    padding: 6px; /* Reduced from 8px */
-    border: 1px solid #ddd;
-    vertical-align: top;
-    font-size: 11px;
-}
-
 /* Network Graph Container */
 #networkGraph {
     width: 100%;
@@ -1728,8 +1664,8 @@ body.map-moving .flag-marker {
 
 .report-content-wrapper {
     padding: 30px;
-    max-height: 500px; /* Direct height constraint for scrolling */
-    overflow-y: auto;
+    height: 500px; /* Fixed height to ensure scrolling works */
+    overflow-y: scroll; /* Force scrollbar to show */
     line-height: 1.8;
     color: #333;
 }
