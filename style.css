@@ -1159,6 +1159,7 @@ body.feed-closed .bottom-filter-panel {
     /* Container for report - no scrolling here, inner wrapper handles it */
     flex: 1;
     min-height: 0; /* Critical for flex scrolling to work */
+    max-height: 100%; /* Ensure it doesn't overflow parent */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1716,7 +1717,7 @@ body.map-moving .flag-marker {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1; /* Changed from height: 100% to flex: 1 */
     min-height: 0; /* Critical for flex scrolling */
 }
 
