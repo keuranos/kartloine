@@ -414,9 +414,13 @@
     <!-- Mobile Detection and Desktop Mode Notice -->
     <script>
         (function() {
-            // Detect mobile devices
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                            (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+            // Detect mobile devices more accurately
+            const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth <= 1024; // Typical mobile/tablet max width
+            const hasTouchOnly = navigator.maxTouchPoints > 0 && !window.matchMedia("(pointer: fine)").matches;
+
+            // Only show on actual mobile devices (not desktop browsers or touchscreen desktops)
+            const isMobile = isMobileUserAgent && (isSmallScreen || hasTouchOnly);
 
             // Check if user has already seen the notice
             const hasSeenNotice = sessionStorage.getItem('mobileNoticeShown');
