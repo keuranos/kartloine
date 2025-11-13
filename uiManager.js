@@ -394,8 +394,8 @@ const UIManager = {
 
     openReportsModal: function() {
         const modal = document.getElementById('reportsModal');
-        const dayList = document.getElementById('reportsDayList');
-        
+        const select = document.getElementById('reportDateSelect');
+
         // Group reports by date
         const reportsByDate = new Map();
         App.state.dailyReports.forEach(report => {
@@ -405,24 +405,32 @@ const UIManager = {
             }
             reportsByDate.get(date).push(report);
         });
-        
+
         // Sort dates (newest first)
         const sortedDates = [...reportsByDate.keys()].sort().reverse();
-        
-        dayList.innerHTML = sortedDates.map(date => {
-            const reports = reportsByDate.get(date);
-            return `
-                <div class="day-item" onclick="UIManager.showDailyReport('${date}')">
-                    <strong>📅 ${date}</strong>
-                    <small>${reports.length} report(s)</small>
-                </div>
-            `;
-        }).join('');
-        
+
+        // Populate dropdown
+        select.innerHTML = '<option value="">-- Select a date --</option>' +
+            sortedDates.map(date => {
+                const reports = reportsByDate.get(date);
+                return `<option value="${date}">📅 ${date} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
+            }).join('');
+
+        // Reset content and hide actions
+        document.getElementById('reportContent').style.display = 'none';
+        document.getElementById('reportsActions').style.display = 'none';
+
         modal.style.display = 'block';
     },
 
     showDailyReport: function(date) {
+        // Handle empty selection
+        if (!date) {
+            document.getElementById('reportContent').style.display = 'none';
+            document.getElementById('reportsActions').style.display = 'none';
+            return;
+        }
+
         const reports = App.state.dailyReports.filter(r => r.date === date);
         if (reports.length === 0) {
             alert('No report found for this date');
@@ -433,7 +441,6 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        document.getElementById('reportsDayList').style.display = 'none';
         document.getElementById('reportsActions').style.display = 'flex';
 
         const content = document.getElementById('reportContent');
