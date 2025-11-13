@@ -1862,16 +1862,9 @@ body.map-moving .flag-marker {
 
 /* Report Disclaimer */
 .report-disclaimer {
-    position: absolute;
-    bottom: 15px;
-    left: 25px;
     font-size: 11px;
     color: #999;
     font-style: italic;
-}
-
-/* Make sure modal-content is positioned relative for absolute positioning of disclaimer */
-#reportsModal .modal-content {
-    position: relative;
-    padding-bottom: 50px; /* Extra padding for disclaimer */
+    padding: 10px 0;
+    text-align: left;
 }
