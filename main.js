@@ -142,6 +142,22 @@ const App = {
             });
         });
 
+        // Legend toggle
+        document.getElementById('legendToggleBtn').addEventListener('click', () => {
+            const legendPanel = document.getElementById('legendPanel');
+            const btn = document.getElementById('legendToggleBtn');
+            legendPanel.classList.toggle('show');
+            btn.classList.toggle('active');
+        });
+
+        // Legend close button
+        document.getElementById('legendCloseBtn').addEventListener('click', () => {
+            const legendPanel = document.getElementById('legendPanel');
+            const btn = document.getElementById('legendToggleBtn');
+            legendPanel.classList.remove('show');
+            btn.classList.remove('active');
+        });
+
         // Modal search inputs
         document.getElementById('eventsModalSearch').addEventListener('input', () => {
             UIManager.filterModalItems('events');

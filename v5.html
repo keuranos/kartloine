@@ -103,6 +103,58 @@
         <button class="ctrl-btn" id="resetAllBtn" onclick="App.resetAllFilters()">
             <span style="font-size: 18px;">🔄</span> Reset All
         </button>
+        <button class="ctrl-btn" id="legendToggleBtn">
+            <span style="font-size: 18px;">🗺️</span> Legend
+        </button>
+    </div>
+
+    <!-- Map Legend Panel -->
+    <div class="legend-panel" id="legendPanel">
+        <div class="legend-header">
+            <h3>🗺️ Map Legend</h3>
+            <button class="legend-close" id="legendCloseBtn">×</button>
+        </div>
+        <div class="legend-content">
+            <div class="legend-section">
+                <h4>Circle Markers (Generic Events)</h4>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #3388ff; border: 2px solid #fff;"></div>
+                    <span>Ukrainian side events</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #ff4444; border: 2px solid #fff;"></div>
+                    <span>Russian side events</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #888; border: 2px solid #fff;"></div>
+                    <span>Unknown/Neutral side</span>
+                </div>
+                <div class="legend-note">Note: Faded markers = already viewed</div>
+            </div>
+            <div class="legend-section">
+                <h4>Entity Markers (Systems & Units)</h4>
+                <div class="legend-item">
+                    <div class="legend-icon">🚁</div>
+                    <span>Weapon systems (drones, missiles, etc.)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon">🪖</div>
+                    <span>Military units and brigades</span>
+                </div>
+                <div class="legend-note">Color: Blue (UA) / Red (RU) / Gray (Unknown)</div>
+            </div>
+            <div class="legend-section">
+                <h4>Flag Markers</h4>
+                <div class="legend-item">
+                    <div class="legend-flag" style="background: linear-gradient(180deg, #0057b7 50%, #ffd700 50%);"></div>
+                    <span>Ukrainian flag markers</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-flag" style="background: linear-gradient(180deg, #fff 33%, #0039a6 33%, #0039a6 66%, #d52b1e 66%);"></div>
+                    <span>Russian flag markers</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Filter Panel -->

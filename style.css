@@ -1517,3 +1517,124 @@ body.map-moving .flag-marker {
     backface-visibility: hidden;
     perspective: 1000px;
 }
+
+/* Map Legend Panel */
+.legend-panel {
+    position: fixed;
+    bottom: 70px;
+    left: 340px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    max-width: 350px;
+    z-index: 999;
+    display: none;
+    transition: left 0.3s ease;
+}
+
+.main-container.feed-closed ~ .legend-panel {
+    left: 20px;
+}
+
+.legend-panel.show {
+    display: block;
+}
+
+.legend-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.legend-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.legend-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.2s;
+}
+
+.legend-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.legend-content {
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.legend-section {
+    margin-bottom: 20px;
+}
+
+.legend-section:last-child {
+    margin-bottom: 0;
+}
+
+.legend-section h4 {
+    font-size: 13px;
+    color: #667eea;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #333;
+}
+
+.legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.legend-flag {
+    width: 20px;
+    height: 14px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.legend-note {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+    margin-top: 5px;
+    padding-left: 34px;
+}

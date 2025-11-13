@@ -161,10 +161,33 @@ const MapManager = {
         let flagCount = 0;
         let genericCount = 0;
 
+        // Track markers at same location to apply offsets
+        const locationCounts = new Map();
+
         events.forEach(event => {
             if (!event.event_lat || !event.event_lng) return;
 
-            const latLng = [event.event_lat, event.event_lng];
+            // Create location key for grouping
+            const locationKey = `${event.event_lat.toFixed(6)},${event.event_lng.toFixed(6)}`;
+
+            // Track how many markers at this location
+            if (!locationCounts.has(locationKey)) {
+                locationCounts.set(locationKey, 0);
+            }
+            const offsetIndex = locationCounts.get(locationKey);
+            locationCounts.set(locationKey, offsetIndex + 1);
+
+            // Apply small offset in circular pattern to prevent complete overlap
+            const offsetRadius = 0.0002; // ~20 meters
+            const angle = (offsetIndex * 45) * (Math.PI / 180); // 45 degree increments
+            const latOffset = offsetRadius * Math.cos(angle);
+            const lngOffset = offsetRadius * Math.sin(angle);
+
+            const latLng = [
+                parseFloat(event.event_lat) + latOffset,
+                parseFloat(event.event_lng) + lngOffset
+            ];
+
             const match = event.__match;
             const side = DataProcessor.detectSide(event);
             const isViewed = state.viewedEvents.has(event.event_id);
