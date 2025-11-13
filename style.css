@@ -1887,3 +1887,60 @@ body.map-moving .flag-marker {
 .report-content-wrapper::-webkit-scrollbar-thumb:hover {
     background: #764ba2;
 }
+
+/* Report Selector (Dropdown) */
+.report-selector {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.report-selector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.report-selector select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.report-selector select:hover {
+    border-color: #764ba2;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.report-selector select:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Report Disclaimer */
+.report-disclaimer {
+    position: absolute;
+    bottom: 15px;
+    left: 25px;
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Make sure modal-content is positioned relative for absolute positioning of disclaimer */
+#reportsModal .modal-content {
+    position: relative;
+    padding-bottom: 50px; /* Extra padding for disclaimer */
+}
