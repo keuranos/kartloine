@@ -439,43 +439,65 @@ const UIManager = {
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
 
-        // Format the report text (preserve line breaks and basic formatting)
+        // Format the report text with beautiful modern styling
         let formattedContent = report.content || 'No content available';
 
-        // Convert markdown-style formatting to HTML
+        // Step 1: Convert markdown headings with emoji support
         formattedContent = formattedContent
-            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>') // Bold + italic
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
-            .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
-            .replace(/\n\n/g, '</p><p>') // Paragraphs
-            .replace(/\n/g, '<br>') // Line breaks
-            .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>') // Headers level 3
-            .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>') // Headers level 2
-            .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>'); // Headers level 1
+            .replace(/^#\s+(.+)$/gm, '<h1 class="report-h1">$1</h1>')
+            .replace(/^##\s+(.+)$/gm, '<h2 class="report-h2">$1</h2>')
+            .replace(/^###\s+(.+)$/gm, '<h3 class="report-h3">$1</h3>')
+            .replace(/^####\s+(.+)$/gm, '<h4 class="report-h4">$1</h4>');
 
-        // Convert markdown tables to HTML tables
-        const tableRegex = /\|(.+)\|\n\|[\-\s\|]+\|\n((?:\|.+\|\n?)+)/g;
+        // Step 2: Convert markdown tables to styled HTML tables
+        const tableRegex = /\|(.+)\|\n\|[\-:\s\|]+\|\n((?:\|.+\|\n?)+)/g;
         formattedContent = formattedContent.replace(tableRegex, (match, header, rows) => {
             const headers = header.split('|').filter(h => h.trim()).map(h => `<th>${h.trim()}</th>`).join('');
             const rowsHtml = rows.trim().split('\n').map(row => {
                 const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
                 return `<tr>${cells}</tr>`;
             }).join('');
-            return `<table><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+            return `<table class="report-table"><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
         });
 
+        // Step 3: Convert markdown lists (numbered and bullet)
+        formattedContent = formattedContent
+            .replace(/^\d+\.\s+(.+)$/gm, '<li class="report-list-item">$1</li>')
+            .replace(/^[\*\-]\s+(.+)$/gm, '<li class="report-list-item">$1</li>');
+
+        // Wrap consecutive list items in <ol> or <ul>
+        formattedContent = formattedContent.replace(/(<li class="report-list-item">.+?<\/li>\n?)+/g, (match) => {
+            return `<ul class="report-list">${match}</ul>`;
+        });
+
+        // Step 4: Convert bold, italic, and bold+italic
+        formattedContent = formattedContent
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        // Step 5: Handle section dividers
+        formattedContent = formattedContent.replace(/^---$/gm, '<hr class="report-divider">');
+
+        // Step 6: Convert paragraphs (double line breaks)
+        formattedContent = formattedContent
+            .replace(/\n\n/g, '</p><p class="report-paragraph">')
+            .replace(/\n/g, '<br>');
+
+        // Wrap content in paragraph tags
+        formattedContent = `<p class="report-paragraph">${formattedContent}</p>`;
+
+        // Clean up empty paragraphs
+        formattedContent = formattedContent.replace(/<p class="report-paragraph"><\/p>/g, '');
+
         content.innerHTML = `
-            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 16px;">📅 Daily Report: ${date}</h3>
-            <div class="report-text" style="
-                line-height: 1.6;
-                color: #333;
-                max-height: 600px;
-                overflow-y: auto;
-                padding: 15px;
-                background: #f9f9f9;
-                border-radius: 8px;
-            ">
-                <p>${formattedContent}</p>
+            <div class="report-container">
+                <div class="report-header">
+                    <h2 class="report-title">📅 Daily Report: ${date}</h2>
+                </div>
+                <div class="report-content-wrapper">
+                    ${formattedContent}
+                </div>
             </div>
         `;
     },
