@@ -1158,6 +1158,7 @@ body.feed-closed .bottom-filter-panel {
 .report-content {
     /* Container for report - no scrolling here, inner wrapper handles it */
     flex: 1;
+    min-height: 0; /* Critical for flex scrolling to work */
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -1716,6 +1717,7 @@ body.map-moving .flag-marker {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0; /* Critical for flex scrolling */
 }
 
 .report-header {
@@ -1734,6 +1736,7 @@ body.map-moving .flag-marker {
 .report-content-wrapper {
     padding: 30px;
     flex: 1;
+    min-height: 0; /* Critical for flex scrolling */
     overflow-y: auto;
     line-height: 1.8;
     color: #333;
