@@ -9,10 +9,17 @@ const MapManager = {
     selectedEventId: null,
 
     init: function() {
-        this.map = L.map('map').setView([49.0, 32.0], 6);
+        // Use Canvas renderer for better performance in Brave/Firefox
+        this.map = L.map('map', {
+            preferCanvas: true,
+            renderer: L.canvas({ tolerance: 5 })
+        }).setView([49.0, 32.0], 6);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            updateWhenIdle: false,
+            updateWhenZooming: false,
+            keepBuffer: 2
         }).addTo(this.map);
 
         // Create three layers in order (bottom to top)
@@ -22,7 +29,10 @@ const MapManager = {
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true,
-            disableClusteringAtZoom: 11  // Disable clustering at high zoom
+            disableClusteringAtZoom: 11,  // Disable clustering at high zoom
+            chunkedLoading: true,
+            chunkInterval: 200,
+            chunkDelay: 50
         });
 
         // 2. Special layer for flags
@@ -36,11 +46,24 @@ const MapManager = {
         this.map.addLayer(this.specialLayer);
         this.map.addLayer(this.entityLayer);
 
+        // Optimize pan/zoom performance by disabling blur during interaction
+        let panTimeout;
+        this.map.on('movestart', () => {
+            document.body.classList.add('map-moving');
+        });
+
+        this.map.on('moveend', () => {
+            clearTimeout(panTimeout);
+            panTimeout = setTimeout(() => {
+                document.body.classList.remove('map-moving');
+            }, 100);
+        });
+
         // Update line on map move/zoom
         this.map.on('move', () => this.updateSelectionLine());
         this.map.on('zoom', () => this.updateSelectionLine());
 
-        console.log('✅ Map layers initialized: cluster, special, entity');
+        console.log('✅ Map layers initialized with Canvas renderer for performance');
     },
 
     // Create entity marker icon (systems/units with emoji)

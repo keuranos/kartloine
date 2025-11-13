@@ -1475,3 +1475,45 @@ body.feed-closed .bottom-filter-panel {
     outline: none;
     border-color: #667eea;
 }
+/* Performance optimizations for map panning (especially Brave browser) */
+/* Disable expensive effects during map movement */
+body.map-moving .header {
+    backdrop-filter: none;
+    transition: none;
+}
+
+body.map-moving .stat-card {
+    box-shadow: none;
+    transition: none;
+}
+
+body.map-moving .podcast-player-inline {
+    box-shadow: none;
+}
+
+body.map-moving .leaflet-marker-icon {
+    will-change: transform;
+}
+
+body.map-moving .entity-icon,
+body.map-moving .flag-marker {
+    filter: none;
+}
+
+/* Enable hardware acceleration for frequently moved elements */
+.leaflet-map-pane {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    will-change: transform;
+}
+
+/* Optimize marker rendering */
+.entity-marker,
+.flag-marker-icon {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
