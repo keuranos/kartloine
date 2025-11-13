@@ -651,11 +651,15 @@ const App = {
                 return;
             }
 
+            // Automatically center on first result
+            const firstResult = results[0];
+            this.centerMapOn(firstResult.lat, firstResult.lon, firstResult.display_name);
+
             // Display results
             let html = '';
-            results.forEach(result => {
+            results.forEach((result, index) => {
                 html += `
-                    <div class="search-result-item" onclick="App.centerMapOn(${result.lat}, ${result.lon}, '${result.display_name.replace(/'/g, "\\'")}')">
+                    <div class="search-result-item ${index === 0 ? 'selected' : ''}" onclick="App.centerMapOn(${result.lat}, ${result.lon}, '${result.display_name.replace(/'/g, "\\'")}')">
                         <div class="search-result-name">${result.display_name}</div>
                         <div class="search-result-details">📍 ${result.lat}, ${result.lon}</div>
                     </div>

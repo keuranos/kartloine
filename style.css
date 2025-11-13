@@ -877,7 +877,7 @@ body.feed-closed .bottom-controls {
 
 .bottom-filter-panel {
     position: fixed;
-    bottom: 0;
+    bottom: 70px; /* Positioned above bottom buttons */
     left: 320px; /* Account for smaller feed panel */
     right: 360px; /* Account for smaller side panel */
     background: white;
@@ -1625,6 +1625,16 @@ body.map-moving .flag-marker {
     background: #f8f9fa;
     border-color: #667eea;
     transform: translateX(5px);
+}
+
+.search-result-item.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.search-result-item.selected .search-result-name,
+.search-result-item.selected .search-result-details {
+    color: white;
 }
 
 .search-result-name {
