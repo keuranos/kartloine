@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=0.5, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes">
     <title>OSINT Event Database - Visual Analytics</title>
     
     <!-- Open Graph Meta Tags for Link Previews -->
@@ -410,5 +410,100 @@
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
+
+    <!-- Mobile Detection and Desktop Mode Notice -->
+    <script>
+        (function() {
+            // Detect mobile devices
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                            (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+
+            // Check if user has already seen the notice
+            const hasSeenNotice = sessionStorage.getItem('mobileNoticeShown');
+
+            if (isMobile && !hasSeenNotice) {
+                // Wait for page to load before showing notice
+                window.addEventListener('load', function() {
+                    // Create overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.7);
+                        z-index: 10000;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        animation: fadeIn 0.3s ease-in;
+                    `;
+
+                    // Create notice box
+                    const noticeBox = document.createElement('div');
+                    noticeBox.style.cssText = `
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        max-width: 400px;
+                        margin: 20px;
+                        text-align: center;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    `;
+
+                    noticeBox.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 20px;">💻</div>
+                        <h2 style="color: #667eea; margin-bottom: 15px; font-size: 22px;">Desktop Experience</h2>
+                        <p style="color: #666; margin-bottom: 20px; line-height: 1.6; font-size: 15px;">
+                            This application is optimized for desktop experience.<br>
+                            You can zoom and pan the entire page for better viewing.
+                        </p>
+                        <button id="closeMobileNotice" style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            border: none;
+                            padding: 12px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                        ">Got it!</button>
+                    `;
+
+                    overlay.appendChild(noticeBox);
+                    document.body.appendChild(overlay);
+
+                    // Close button handler
+                    document.getElementById('closeMobileNotice').addEventListener('click', function() {
+                        overlay.style.animation = 'fadeOut 0.3s ease-out';
+                        setTimeout(function() {
+                            document.body.removeChild(overlay);
+                        }, 300);
+                        sessionStorage.setItem('mobileNoticeShown', 'true');
+                    });
+
+                    // Click overlay to close
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
+                            document.getElementById('closeMobileNotice').click();
+                        }
+                    });
+                });
+            }
+        })();
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
 </body>
 </html>
