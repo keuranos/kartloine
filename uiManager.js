@@ -3,6 +3,20 @@ const UIManager = {
     // Track which analysis sections are pinned open
     openAnalysisSections: new Set(),
 
+    // Format date to Finnish format (dd-mm-yyyy)
+    formatDateFinnish: function(dateString) {
+        if (!dateString || dateString === 'N/A') return dateString;
+
+        // Handle yyyy-mm-dd format
+        const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            const [, year, month, day] = match;
+            return `${day}-${month}-${year}`;
+        }
+
+        return dateString; // Return as-is if format not recognized
+    },
+
     showEventDetail: function(event, state) {
         const analysis = DataProcessor.parseMultimodalAnalysis(event.multimodal_analysis);
         const isFavorite = state.favorites.has(event.event_id);
@@ -12,7 +26,7 @@ const UIManager = {
             <div class="event-detail">
                 <div class="event-detail-header">
                     <div class="event-date">
-                        ${event.event_date || 'N/A'}
+                        ${this.formatDateFinnish(event.event_date) || 'N/A'}
                         ${wcResult.tag === 'pos' ? `<span class="wc-badge">⚠️ WC Score: ${wcResult.score}</span>` : ''}
                     </div>
                     <div class="event-title">${event.event_name || 'Unnamed Event'}</div>
@@ -285,7 +299,7 @@ const UIManager = {
                 <input type="checkbox" id="event-${event.event_id}" value="${event.event_id}">
                 <label class="modal-item-label" for="event-${event.event_id}">
                     <strong>${event.event_name || 'Unnamed'}</strong><br>
-                    <small>${event.event_date || 'No date'} - ${event.event_location || 'Unknown'}</small>
+                    <small>${this.formatDateFinnish(event.event_date) || 'No date'} - ${event.event_location || 'Unknown'}</small>
                 </label>
             </div>
         `).join('');
@@ -413,7 +427,7 @@ const UIManager = {
         select.innerHTML = '<option value="">-- Select a date --</option>' +
             sortedDates.map(date => {
                 const reports = reportsByDate.get(date);
-                return `<option value="${date}">📅 ${date} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
+                return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
             }).join('');
 
         // Reset content and hide actions
@@ -500,7 +514,7 @@ const UIManager = {
         content.innerHTML = `
             <div class="report-container">
                 <div class="report-header">
-                    <h2 class="report-title">📅 Daily Report: ${date}</h2>
+                    <h2 class="report-title">📅 Daily Report: ${this.formatDateFinnish(date)}</h2>
                 </div>
                 <div class="report-content-wrapper">
                     ${formattedContent}
@@ -522,7 +536,7 @@ const UIManager = {
                 <div class="modal-item" onclick="UIManager.showEventFromFavorites('${event.event_id}')">
                     <div class="modal-item-label">
                         <strong>${event.event_name || 'Unnamed'}</strong><br>
-                        <small>${event.event_date || 'No date'} - ${event.event_location || 'Unknown'}</small>
+                        <small>${this.formatDateFinnish(event.event_date) || 'No date'} - ${event.event_location || 'Unknown'}</small>
                     </div>
                 </div>
             `).join('');
@@ -648,13 +662,19 @@ const UIManager = {
             const messageText = event.translated_text || event.event_description || event.message_text || 'No message text available';
             const messageDate = event.message_date || event.event_date || 'N/A';
 
-            // Format time if available (HH:MM:SS)
+            // Format date to Finnish format and keep time if available
             let displayDate = messageDate;
-            if (messageDate && messageDate.includes(' ')) {
-                // Has time component
-                const [date, time] = messageDate.split(' ');
-                const [hours, minutes] = time.split(':');
-                displayDate = `${date} ${hours}:${minutes}`;
+            if (messageDate && messageDate !== 'N/A') {
+                if (messageDate.includes(' ')) {
+                    // Has time component (yyyy-mm-dd HH:MM:SS)
+                    const [date, time] = messageDate.split(' ');
+                    const formattedDate = this.formatDateFinnish(date);
+                    const [hours, minutes] = time.split(':');
+                    displayDate = `${formattedDate} ${hours}:${minutes}`;
+                } else {
+                    // Date only
+                    displayDate = this.formatDateFinnish(messageDate);
+                }
             }
 
             // Truncate for preview
