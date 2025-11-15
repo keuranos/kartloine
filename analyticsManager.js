@@ -650,16 +650,24 @@ const AnalyticsManager = {
                     datalabels: {
                         display: true,
                         align: function(context) {
+                            if (!context.parsed || typeof context.parsed.y === 'undefined') {
+                                return 'top';
+                            }
                             return context.parsed.y >= 0 ? 'top' : 'bottom';
                         },
                         anchor: function(context) {
+                            if (!context.parsed || typeof context.parsed.y === 'undefined') {
+                                return 'end';
+                            }
                             return context.parsed.y >= 0 ? 'end' : 'start';
                         },
                         formatter: function(value) {
                             const absValue = Math.abs(value);
                             return absValue > 0 ? (value >= 0 ? `+${absValue}` : `-${absValue}`) : '';
                         },
-                        color: '#333',
+                        color: function(context) {
+                            return document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333';
+                        },
                         font: {
                             weight: 'bold',
                             size: 10
@@ -732,7 +740,7 @@ const AnalyticsManager = {
                     }
                 }
             },
-            plugins: [ChartDataLabels]
+            plugins: typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : []
         });
     },
 
@@ -809,7 +817,9 @@ const AnalyticsManager = {
                         formatter: function(value) {
                             return value;
                         },
-                        color: '#333',
+                        color: function(context) {
+                            return document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333';
+                        },
                         font: {
                             weight: 'bold',
                             size: 10
@@ -848,7 +858,7 @@ const AnalyticsManager = {
                     }
                 }
             },
-            plugins: [ChartDataLabels]
+            plugins: typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : []
         });
     },
 
