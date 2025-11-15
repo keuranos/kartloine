@@ -17,23 +17,32 @@ body {
 }
 
 .header {
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent; /* Fully transparent */
     padding: 10px 15px; /* Reduced from 15px 20px */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: none; /* Remove shadow for fully transparent look */
     z-index: 1000;
     position: fixed;
     top: 0;
-    left: 0; /* Always full width */
-    right: 0;
+    left: 320px; /* Start after feed panel */
+    right: 360px; /* Stop before sidebar */
+    backdrop-filter: blur(10px); /* Add blur for better readability */
+    transition: left 0.3s ease;
+}
+
+/* Adjust header when feed is closed */
+.main-container.feed-closed .header {
+    left: 0; /* Full width when feed is closed */
 }
 
 .header h1 {
-    color: #667eea;
+    color: #ffffff;
     font-size: 18px; /* Reduced from 24px */
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 20px rgba(102, 126, 234, 0.8);
+    font-weight: 700;
 }
 
 /* CRITICAL: Z-index must be above filter button */
@@ -92,6 +101,58 @@ body {
     color: #555;
     border-left: 4px solid #667eea;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Inline Podcast Player - Next to Daily Reports */
+.podcast-player-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Label for podcast player */
+.podcast-label-inline {
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+/* Compact but usable audio player */
+.podcast-player-inline audio {
+    height: 30px;
+    width: 200px; /* Wider - show play/pause and timeline */
+    outline: none;
+}
+
+.podcast-player-inline audio::-webkit-media-controls-enclosure {
+    max-width: 200px;
+}
+
+.podcast-player-inline audio::-webkit-media-controls-panel {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+/* Hide only volume controls to keep it compact */
+.podcast-player-inline audio::-webkit-media-controls-volume-slider,
+.podcast-player-inline audio::-webkit-media-controls-mute-button {
+    display: none !important;
+}
+
+/* Dark controls for visibility on light panel background */
+.podcast-player-inline audio::-webkit-media-controls-play-button,
+.podcast-player-inline audio::-webkit-media-controls-timeline,
+.podcast-player-inline audio::-webkit-media-controls-current-time-display,
+.podcast-player-inline audio::-webkit-media-controls-time-remaining-display {
+    filter: brightness(0) contrast(2); /* Very dark/black controls with high contrast */
+    opacity: 0.9;
 }
 
 /* Main Layout - Fixed right side panel */
@@ -163,14 +224,10 @@ body {
     z-index: 900; /* Below header (1000) but above map */
     position: fixed;
     right: 0;
-    top: 95px; /* Start below header */
+    top: 0; /* Start at top - header no longer overlaps */
     bottom: 0;
-    height: auto; /* Let it fill from top to bottom */
+    height: 100vh; /* Full height */
     transition: top 0.3s ease;
-}
-
-.side-panel.timeline-hidden {
-    top: 60px; /* Less space when timeline is hidden */
 }
 
 .side-panel.empty {
@@ -477,7 +534,7 @@ body {
 
 /* Event Detail Panel */
 .event-detail {
-    padding: 15px;
+    padding: 20px 15px 15px; /* Extra top padding to prevent overlap with header */
     height: 100%; /* Fill the side panel */
     overflow-y: auto;
 }
@@ -820,7 +877,7 @@ body.feed-closed .bottom-controls {
 
 .bottom-filter-panel {
     position: fixed;
-    bottom: 0;
+    bottom: 70px; /* Positioned above bottom buttons */
     left: 320px; /* Account for smaller feed panel */
     right: 360px; /* Account for smaller side panel */
     background: white;
@@ -941,7 +998,7 @@ body.feed-closed .bottom-filter-panel {
     background: white;
     border-radius: 15px;
     padding: 25px; /* Reduced from 30px */
-    max-width: 800px; /* Increased from 700px for reports */
+    max-width: 1040px; /* 30% wider for better readability */
     width: 90%;
     max-height: 85vh; /* Increased from 80vh */
     overflow: hidden;
@@ -1097,80 +1154,11 @@ body.feed-closed .bottom-filter-panel {
     transform: translateY(-2px);
 }
 
-/* Report Content Styling - Completely Redesigned */
+/* Report Content Styling - Outer container (no scrolling) */
 .report-content {
-    padding: 15px; /* Reduced from 20px */
-    background: white;
-    border-radius: 10px;
-    line-height: 1.5; /* Reduced from 1.7 */
-    font-size: 12px; /* Reduced from 13px */
-    color: #333;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-.report-content h1 {
-    color: #667eea;
-    font-size: 14px; /* Reduced from 16px */
-    margin: 15px 0 8px; /* Reduced margins */
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 5px;
-}
-
-.report-content h2 {
-    color: #764ba2;
-    font-size: 13px; /* Reduced from 15px */
-    margin: 12px 0 8px; /* Reduced margins */
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 4px;
-}
-
-.report-content h3 {
-    color: #667eea;
-    font-size: 12px; /* Reduced from 14px */
-    margin: 10px 0 6px; /* Reduced margins */
-}
-
-.report-content strong {
-    color: #667eea;
-    font-weight: 600;
-}
-
-.report-content ul {
-    margin: 8px 0 8px 18px; /* Reduced margins and indentation */
-}
-
-.report-content li {
-    margin: 4px 0; /* Reduced from 6px */
-    line-height: 1.4;
-}
-
-.report-content p {
-    margin: 8px 0; /* Reduced from 10px */
-    line-height: 1.5;
-}
-
-.report-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10px 0; /* Reduced from 15px */
-    font-size: 11px; /* Reduced from 12px */
-}
-
-.report-content table th {
-    background: #f0f0f0;
-    padding: 6px; /* Reduced from 8px */
-    text-align: left;
-    font-weight: 600;
-    border: 1px solid #ddd;
-    font-size: 11px;
-}
-
-.report-content table td {
-    padding: 6px; /* Reduced from 8px */
-    border: 1px solid #ddd;
-    vertical-align: top;
-    font-size: 11px;
+    /* Container for report - no scrolling here, inner wrapper handles it */
+    flex: 1;
+    overflow: visible; /* Allow inner scrollbar to be visible */
 }
 
 /* Network Graph Container */
@@ -1268,4 +1256,682 @@ body.feed-closed .bottom-filter-panel {
 
 .pulse-marker {
     animation: pulse 2s infinite;
+}
+
+/* ====== ENTITY MARKER ICONS ====== */
+
+/* Base entity icon styling */
+.entity-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    font-weight: bold;
+}
+
+/* Side-based backgrounds for entity markers */
+.ent-ua {
+    background: linear-gradient(135deg, #0057b7 0%, #ffd700 100%);
+}
+
+.ent-ru {
+    background: linear-gradient(135deg, #ffffff 0%, #d52b1e 50%, #0039a6 100%);
+}
+
+.ent-unk {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+
+/* Flag marker styling (small rectangular flags) */
+.flag-marker {
+    width: 20px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.flag-ua {
+    background: linear-gradient(180deg, #0057b7 0%, #0057b7 50%, #ffd700 50%, #ffd700 100%);
+}
+
+.flag-ru {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 33%, #0039a6 33%, #0039a6 66%, #d52b1e 66%, #d52b1e 100%);
+}
+
+/* System icon specific styling */
+.system-icon {
+    width: 26px;
+    height: 26px;
+}
+
+/* Unit icon specific styling */
+.unit-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Filter tag buttons styling */
+.filter-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.filter-tag {
+    background: #f0f0f0;
+    color: #333;
+    border: 2px solid transparent;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.filter-tag:hover {
+    background: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+.filter-tag.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.filter-tag .count {
+    background: rgba(0,0,0,0.15);
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    font-size: 11px;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 10px;
+    padding: 10px 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.filter-controls button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-controls .select-all {
+    background: #667eea;
+    color: white;
+}
+
+.filter-controls .clear-all {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.filter-controls .select-all:hover {
+    background: #5568d3;
+}
+
+.filter-controls .clear-all:hover {
+    background: #e0e0e0;
+}
+
+.filter-search-box {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.filter-search-box:focus {
+    outline: none;
+    border-color: #667eea;
+}
+/* Performance optimizations for map panning (especially Brave browser) */
+/* Disable expensive effects during map movement */
+body.map-moving .header {
+    backdrop-filter: none;
+    transition: none;
+}
+
+body.map-moving .stat-card {
+    box-shadow: none;
+    transition: none;
+}
+
+body.map-moving .podcast-player-inline {
+    box-shadow: none;
+}
+
+body.map-moving .leaflet-marker-icon {
+    will-change: transform;
+}
+
+body.map-moving .entity-icon,
+body.map-moving .flag-marker {
+    filter: none;
+}
+
+/* Enable hardware acceleration for frequently moved elements */
+.leaflet-map-pane {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+    will-change: transform;
+}
+
+/* Optimize marker rendering */
+.entity-marker,
+.flag-marker-icon {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Map Legend Panel */
+.legend-panel {
+    position: fixed;
+    bottom: 70px;
+    left: 340px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    max-width: 350px;
+    z-index: 999;
+    display: none;
+    transition: left 0.3s ease;
+}
+
+.main-container.feed-closed ~ .legend-panel {
+    left: 20px;
+}
+
+.legend-panel.show {
+    display: block;
+}
+
+.legend-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.legend-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.legend-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.2s;
+}
+
+.legend-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.legend-content {
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.legend-section {
+    margin-bottom: 20px;
+}
+
+.legend-section:last-child {
+    margin-bottom: 0;
+}
+
+.legend-section h4 {
+    font-size: 13px;
+    color: #667eea;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #333;
+}
+
+.legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-icon {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.legend-flag {
+    width: 20px;
+    height: 14px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.legend-note {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+    margin-top: 5px;
+    padding-left: 34px;
+}
+
+/* Search Tabs */
+.search-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.search-tab {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+}
+
+.search-tab:hover {
+    color: #667eea;
+}
+
+.search-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.search-section {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Search Results */
+.search-results {
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.search-result-item {
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.search-result-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+.search-result-item.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.search-result-item.selected .search-result-name,
+.search-result-item.selected .search-result-details {
+    color: white;
+}
+
+.search-result-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.search-result-details {
+    font-size: 12px;
+    color: #666;
+}
+
+/* ========================================
+   DAILY REPORT BEAUTIFUL STYLING
+   ======================================== */
+
+/* Report Container */
+.report-container {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: visible; /* Allow inner scrollbar to show */
+}
+
+.report-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 25px;
+    color: white;
+}
+
+.report-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+}
+
+.report-content-wrapper {
+    padding: 30px;
+    height: 500px; /* Fixed height to ensure scrolling works */
+    overflow-y: scroll; /* Force scrollbar to show */
+    line-height: 1.8;
+    color: #333;
+}
+
+/* Report Headings */
+.report-h1 {
+    font-size: 28px;
+    color: #667eea;
+    margin: 30px 0 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #667eea;
+    font-weight: 700;
+}
+
+.report-h2 {
+    font-size: 22px;
+    color: #667eea;
+    margin: 25px 0 15px 0;
+    font-weight: 600;
+}
+
+.report-h3 {
+    font-size: 18px;
+    color: #764ba2;
+    margin: 20px 0 12px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 14px;
+}
+
+.report-h4 {
+    font-size: 16px;
+    color: #333;
+    margin: 15px 0 10px 0;
+    font-weight: 600;
+}
+
+/* Report Paragraphs */
+.report-paragraph {
+    margin: 0 0 15px 0;
+    line-height: 1.8;
+    color: #444;
+    max-width: 100%;
+}
+
+.report-paragraph:last-child {
+    margin-bottom: 0;
+}
+
+/* Report Tables */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.report-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.report-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+}
+
+.report-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    color: #444;
+    vertical-align: top;
+}
+
+.report-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.report-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Report Lists */
+.report-list {
+    margin: 15px 0;
+    padding-left: 25px;
+    list-style: none;
+}
+
+.report-list-item {
+    margin: 10px 0;
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.6;
+    color: #444;
+}
+
+.report-list-item:before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+/* Report Dividers */
+.report-divider {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #667eea, transparent);
+    margin: 30px 0;
+}
+
+/* Strong and Emphasis */
+.report-content-wrapper strong {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.report-content-wrapper em {
+    color: #764ba2;
+    font-style: italic;
+}
+
+/* Scrollbar styling for report content */
+.report-content-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.report-content-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.report-content-wrapper::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.report-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
+}
+
+/* Report Selector (Dropdown) */
+.report-selector {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.report-selector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 14px;
+}
+
+.report-selector select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.report-selector select:hover {
+    border-color: #764ba2;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.report-selector select:focus {
+    outline: none;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Report Disclaimer */
+.report-disclaimer {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+    padding: 10px 0;
+    text-align: left;
+}
+
+/* ========================================
+   CHANGELOG STYLING
+   ======================================== */
+
+.changelog-container {
+    max-height: 300px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: left;
+}
+
+.changelog-entry {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.changelog-entry:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.changelog-date {
+    font-size: 13px;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 5px;
+}
+
+.changelog-message {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Scrollbar for changelog */
+.changelog-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.changelog-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+    border-radius: 4px;
+}
+
+.changelog-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.changelog-container::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
 }

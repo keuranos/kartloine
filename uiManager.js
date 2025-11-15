@@ -1,15 +1,32 @@
 // UI Manager Module
 const UIManager = {
+    // Track which analysis sections are pinned open
+    openAnalysisSections: new Set(),
+
+    // Format date to Finnish format (dd-mm-yyyy)
+    formatDateFinnish: function(dateString) {
+        if (!dateString || dateString === 'N/A') return dateString;
+
+        // Handle yyyy-mm-dd format
+        const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            const [, year, month, day] = match;
+            return `${day}-${month}-${year}`;
+        }
+
+        return dateString; // Return as-is if format not recognized
+    },
+
     showEventDetail: function(event, state) {
         const analysis = DataProcessor.parseMultimodalAnalysis(event.multimodal_analysis);
         const isFavorite = state.favorites.has(event.event_id);
         const wcResult = event.__wcResult || { tag: null, score: 0 };
-        
+
         let html = `
             <div class="event-detail">
                 <div class="event-detail-header">
                     <div class="event-date">
-                        ${event.event_date || 'N/A'}
+                        ${this.formatDateFinnish(event.event_date) || 'N/A'}
                         ${wcResult.tag === 'pos' ? `<span class="wc-badge">⚠️ WC Score: ${wcResult.score}</span>` : ''}
                     </div>
                     <div class="event-title">${event.event_name || 'Unnamed Event'}</div>
@@ -24,8 +41,8 @@ const UIManager = {
                     </button>
                 </div>
         `;
-        
-        // Add analysis sections
+
+        // Add analysis sections with pinned state
         if (analysis.summary) {
             html += this.createAnalysisSection('summary', event.event_id, '📊 Multimodal Summary', analysis.summary);
         }
@@ -44,31 +61,61 @@ const UIManager = {
         if (analysis.sentiment) {
             html += this.createAnalysisSection('sentiment', event.event_id, '😊 Sentiment Analysis', analysis.sentiment);
         }
-        
+
         html += `</div>`;
-        
+
         const panel = document.getElementById('sidePanel');
         panel.classList.remove('empty');
         panel.innerHTML = html;
+
+        // Restore pinned sections after rendering
+        this.restorePinnedSections(event.event_id);
     },
 
     createAnalysisSection: function(type, eventId, title, content) {
+        const isPinned = this.openAnalysisSections.has(type);
+        const showClass = isPinned ? 'show' : '';
+        const arrow = isPinned ? '▲' : '▼';
+
         return `
             <div class="analysis-section">
-                <div class="analysis-toggle" onclick="UIManager.toggleAnalysis(this, '${type}-${eventId}')">
+                <div class="analysis-toggle" onclick="UIManager.toggleAnalysis(this, '${type}', '${eventId}')">
                     <span>${title}</span>
-                    <span>▼</span>
+                    <span>${arrow}</span>
                 </div>
-                <div id="${type}-${eventId}" class="analysis-content">${DataProcessor.formatAnalysisText(content)}</div>
+                <div id="${type}-${eventId}" class="analysis-content ${showClass}">${DataProcessor.formatAnalysisText(content)}</div>
             </div>
         `;
     },
 
-    toggleAnalysis: function(element, id) {
-        const content = document.getElementById(id);
+    restorePinnedSections: function(eventId) {
+        // Apply pinned state to all sections
+        this.openAnalysisSections.forEach(type => {
+            const contentId = `${type}-${eventId}`;
+            const content = document.getElementById(contentId);
+            if (content) {
+                content.classList.add('show');
+            }
+        });
+    },
+
+    toggleAnalysis: function(element, type, eventId) {
+        const contentId = `${type}-${eventId}`;
+        const content = document.getElementById(contentId);
         const arrow = element.querySelector('span:last-child');
+
         content.classList.toggle('show');
-        arrow.textContent = content.classList.contains('show') ? '▲' : '▼';
+        const isOpen = content.classList.contains('show');
+        arrow.textContent = isOpen ? '▲' : '▼';
+
+        // Update pinned state
+        if (isOpen) {
+            this.openAnalysisSections.add(type);
+            console.log('📌 Pinned section:', type);
+        } else {
+            this.openAnalysisSections.delete(type);
+            console.log('📍 Unpinned section:', type);
+        }
     },
 
     shareEvent: function(eventId) {
@@ -78,7 +125,9 @@ const UIManager = {
             return;
         }
 
-        const url = `${window.location.origin}${window.location.pathname}?event=${eventId}`;
+        // Get current map zoom level
+        const currentZoom = MapManager.map.getZoom();
+        const url = `${window.location.origin}${window.location.pathname}?event=${eventId}&zoom=${currentZoom}`;
 
         // Try to copy to clipboard
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -119,12 +168,17 @@ const UIManager = {
                 e.osint_entities.split(',').forEach(ent => entities.add(ent.trim()));
             }
         });
-        
+
         const totalEvents = state.allEvents.length;
         const warCrimes = filteredEvents.filter(e => e.__wcResult && e.__wcResult.tag === 'pos').length;
+
+        // Count systems and units
+        const systemsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'system').length;
+        const unitsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'unit').length;
+
         const dailyReports = state.dailyReports.length;
         const favoritesCount = state.favorites.size;
-        
+
         const statsHtml = `
             <div class="stat-card total" onclick="UIManager.openModal('events')">
                 <div class="label">TOTAL EVENTS</div>
@@ -142,26 +196,32 @@ const UIManager = {
                 <div class="label">WAR CRIMES</div>
                 <div class="value">${warCrimes}</div>
             </div>
+            <div class="stat-card total" onclick="EntityFilters.openSystemsModal()" style="background: linear-gradient(135deg, #667eea 0%, #43e97b 100%);">
+                <div class="label">SYSTEMS</div>
+                <div class="value">${systemsCount}</div>
+            </div>
+            <div class="stat-card locations" onclick="EntityFilters.openUnitsModal()" style="background: linear-gradient(135deg, #fa709a 0%, #764ba2 100%);">
+                <div class="label">UNITS</div>
+                <div class="value">${unitsCount}</div>
+            </div>
             <div class="stat-card reports" onclick="UIManager.openModal('reports')">
                 <div class="label">DAILY REPORTS</div>
                 <div class="value">${dailyReports}</div>
+            </div>
+            <div class="podcast-player-inline">
+                <div class="podcast-label-inline">📻 Timeline Podcast</div>
+                <audio id="timelinePodcast" controls preload="metadata">
+                    <source src="podcast.m4a" type="audio/mp4">
+                </audio>
             </div>
             <div class="stat-card favorites" onclick="UIManager.openModal('favorites')">
                 <div class="label">FAVORITES</div>
                 <div class="value">${favoritesCount}</div>
             </div>
-            <div class="stat-card network" onclick="UIManager.openModal('network')">
-                <div class="label">NETWORK GRAPH</div>
-                <div class="value">🕸️</div>
-            </div>
-            <div class="stat-card reset" onclick="App.resetAllFilters()">
-                <div class="label">RESET ALL</div>
-                <div class="value">🔄</div>
-            </div>
         `;
-        
+
         document.getElementById('stats').innerHTML = statsHtml;
-        
+
         // Date range display removed - now integrated into timeline controls
     },
 
@@ -239,7 +299,7 @@ const UIManager = {
                 <input type="checkbox" id="event-${event.event_id}" value="${event.event_id}">
                 <label class="modal-item-label" for="event-${event.event_id}">
                     <strong>${event.event_name || 'Unnamed'}</strong><br>
-                    <small>${event.event_date || 'No date'} - ${event.event_location || 'Unknown'}</small>
+                    <small>${this.formatDateFinnish(event.event_date) || 'No date'} - ${event.event_location || 'Unknown'}</small>
                 </label>
             </div>
         `).join('');
@@ -348,8 +408,8 @@ const UIManager = {
 
     openReportsModal: function() {
         const modal = document.getElementById('reportsModal');
-        const dayList = document.getElementById('reportsDayList');
-        
+        const select = document.getElementById('reportDateSelect');
+
         // Group reports by date
         const reportsByDate = new Map();
         App.state.dailyReports.forEach(report => {
@@ -359,24 +419,32 @@ const UIManager = {
             }
             reportsByDate.get(date).push(report);
         });
-        
+
         // Sort dates (newest first)
         const sortedDates = [...reportsByDate.keys()].sort().reverse();
-        
-        dayList.innerHTML = sortedDates.map(date => {
-            const reports = reportsByDate.get(date);
-            return `
-                <div class="day-item" onclick="UIManager.showDailyReport('${date}')">
-                    <strong>📅 ${date}</strong>
-                    <small>${reports.length} report(s)</small>
-                </div>
-            `;
-        }).join('');
-        
+
+        // Populate dropdown
+        select.innerHTML = '<option value="">-- Select a date --</option>' +
+            sortedDates.map(date => {
+                const reports = reportsByDate.get(date);
+                return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
+            }).join('');
+
+        // Reset content and hide actions
+        document.getElementById('reportContent').style.display = 'none';
+        document.getElementById('reportsActions').style.display = 'none';
+
         modal.style.display = 'block';
     },
 
     showDailyReport: function(date) {
+        // Handle empty selection
+        if (!date) {
+            document.getElementById('reportContent').style.display = 'none';
+            document.getElementById('reportsActions').style.display = 'none';
+            return;
+        }
+
         const reports = App.state.dailyReports.filter(r => r.date === date);
         if (reports.length === 0) {
             alert('No report found for this date');
@@ -387,49 +455,70 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        document.getElementById('reportsDayList').style.display = 'none';
         document.getElementById('reportsActions').style.display = 'flex';
 
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
 
-        // Format the report text (preserve line breaks and basic formatting)
+        // Format the report text with beautiful modern styling
         let formattedContent = report.content || 'No content available';
 
-        // Convert markdown-style formatting to HTML
+        // Step 1: Convert markdown headings with emoji support
         formattedContent = formattedContent
-            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>') // Bold + italic
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
-            .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
-            .replace(/\n\n/g, '</p><p>') // Paragraphs
-            .replace(/\n/g, '<br>') // Line breaks
-            .replace(/^###\s+(.+)$/gm, '<h3>$1</h3>') // Headers level 3
-            .replace(/^##\s+(.+)$/gm, '<h2>$1</h2>') // Headers level 2
-            .replace(/^#\s+(.+)$/gm, '<h1>$1</h1>'); // Headers level 1
+            .replace(/^#\s+(.+)$/gm, '<h1 class="report-h1">$1</h1>')
+            .replace(/^##\s+(.+)$/gm, '<h2 class="report-h2">$1</h2>')
+            .replace(/^###\s+(.+)$/gm, '<h3 class="report-h3">$1</h3>')
+            .replace(/^####\s+(.+)$/gm, '<h4 class="report-h4">$1</h4>');
 
-        // Convert markdown tables to HTML tables
-        const tableRegex = /\|(.+)\|\n\|[\-\s\|]+\|\n((?:\|.+\|\n?)+)/g;
+        // Step 2: Convert markdown tables to styled HTML tables
+        const tableRegex = /\|(.+)\|\n\|[\-:\s\|]+\|\n((?:\|.+\|\n?)+)/g;
         formattedContent = formattedContent.replace(tableRegex, (match, header, rows) => {
             const headers = header.split('|').filter(h => h.trim()).map(h => `<th>${h.trim()}</th>`).join('');
             const rowsHtml = rows.trim().split('\n').map(row => {
                 const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
                 return `<tr>${cells}</tr>`;
             }).join('');
-            return `<table><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
+            return `<table class="report-table"><thead><tr>${headers}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
         });
 
+        // Step 3: Convert markdown lists (numbered and bullet)
+        formattedContent = formattedContent
+            .replace(/^\d+\.\s+(.+)$/gm, '<li class="report-list-item">$1</li>')
+            .replace(/^[\*\-]\s+(.+)$/gm, '<li class="report-list-item">$1</li>');
+
+        // Wrap consecutive list items in <ol> or <ul>
+        formattedContent = formattedContent.replace(/(<li class="report-list-item">.+?<\/li>\n?)+/g, (match) => {
+            return `<ul class="report-list">${match}</ul>`;
+        });
+
+        // Step 4: Convert bold, italic, and bold+italic
+        formattedContent = formattedContent
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        // Step 5: Handle section dividers
+        formattedContent = formattedContent.replace(/^---$/gm, '<hr class="report-divider">');
+
+        // Step 6: Convert paragraphs (double line breaks)
+        formattedContent = formattedContent
+            .replace(/\n\n/g, '</p><p class="report-paragraph">')
+            .replace(/\n/g, '<br>');
+
+        // Wrap content in paragraph tags
+        formattedContent = `<p class="report-paragraph">${formattedContent}</p>`;
+
+        // Clean up empty paragraphs
+        formattedContent = formattedContent.replace(/<p class="report-paragraph"><\/p>/g, '');
+
         content.innerHTML = `
-            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 16px;">📅 Daily Report: ${date}</h3>
-            <div class="report-text" style="
-                line-height: 1.6;
-                color: #333;
-                max-height: 600px;
-                overflow-y: auto;
-                padding: 15px;
-                background: #f9f9f9;
-                border-radius: 8px;
-            ">
-                <p>${formattedContent}</p>
+            <div class="report-container">
+                <div class="report-header">
+                    <h2 class="report-title">📅 Daily Report: ${this.formatDateFinnish(date)}</h2>
+                </div>
+                <div class="report-content-wrapper">
+                    ${formattedContent}
+                </div>
             </div>
         `;
     },
@@ -447,7 +536,7 @@ const UIManager = {
                 <div class="modal-item" onclick="UIManager.showEventFromFavorites('${event.event_id}')">
                     <div class="modal-item-label">
                         <strong>${event.event_name || 'Unnamed'}</strong><br>
-                        <small>${event.event_date || 'No date'} - ${event.event_location || 'Unknown'}</small>
+                        <small>${this.formatDateFinnish(event.event_date) || 'No date'} - ${event.event_location || 'Unknown'}</small>
                     </div>
                 </div>
             `).join('');
@@ -503,6 +592,40 @@ const UIManager = {
         });
     },
 
+    openFilterPreferencesModal: function() {
+        const modal = document.getElementById('filterPreferencesModal');
+        modal.style.display = 'block';
+
+        // Get current map state
+        const center = MapManager.map.getCenter();
+        const zoom = MapManager.map.getZoom();
+
+        // Build shareable URL with current filters and map view
+        const params = new URLSearchParams();
+        params.set('lat', center.lat.toFixed(6));
+        params.set('lng', center.lng.toFixed(6));
+        params.set('zoom', zoom);
+
+        // Add active filters
+        if (EntityFilters.selectedSystems.size > 0) {
+            params.set('systems', Array.from(EntityFilters.selectedSystems).join(','));
+        }
+        if (EntityFilters.selectedUnits.size > 0) {
+            params.set('units', Array.from(EntityFilters.selectedUnits).join(','));
+        }
+        if (App.state.warCrimeFilter !== 'all') {
+            params.set('wcFilter', App.state.warCrimeFilter);
+        }
+
+        const shareUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+        document.getElementById('filterShareUrl').value = shareUrl;
+    },
+
+    openAboutModal: function() {
+        const modal = document.getElementById('aboutModal');
+        modal.style.display = 'block';
+    },
+
     populateFeed: function(events) {
         console.log('populateFeed called with', events ? events.length : 0, 'events');
 
@@ -539,13 +662,19 @@ const UIManager = {
             const messageText = event.translated_text || event.event_description || event.message_text || 'No message text available';
             const messageDate = event.message_date || event.event_date || 'N/A';
 
-            // Format time if available (HH:MM:SS)
+            // Format date to Finnish format and keep time if available
             let displayDate = messageDate;
-            if (messageDate && messageDate.includes(' ')) {
-                // Has time component
-                const [date, time] = messageDate.split(' ');
-                const [hours, minutes] = time.split(':');
-                displayDate = `${date} ${hours}:${minutes}`;
+            if (messageDate && messageDate !== 'N/A') {
+                if (messageDate.includes(' ')) {
+                    // Has time component (yyyy-mm-dd HH:MM:SS)
+                    const [date, time] = messageDate.split(' ');
+                    const formattedDate = this.formatDateFinnish(date);
+                    const [hours, minutes] = time.split(':');
+                    displayDate = `${formattedDate} ${hours}:${minutes}`;
+                } else {
+                    // Date only
+                    displayDate = this.formatDateFinnish(messageDate);
+                }
             }
 
             // Truncate for preview

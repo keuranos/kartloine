@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200, initial-scale=0.5, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes">
     <title>OSINT Event Database - Visual Analytics</title>
     
     <!-- Open Graph Meta Tags for Link Previews -->
@@ -16,7 +16,17 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="OSINT Event Database - Visual Analytics" id="twitter-title">
     <meta name="twitter:description" content="Explore and analyze OSINT events with interactive map visualization and detailed analytics." id="twitter-description">
-    
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8BZSPEG2QR"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8BZSPEG2QR');
+    </script>
+
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
@@ -72,8 +82,8 @@
 
     <!-- Control Buttons Container -->
     <div class="bottom-controls">
-        <button class="ctrl-btn" id="filterToggleBtn">
-            <span style="font-size: 18px;">🔍</span> Filters
+        <button class="ctrl-btn" id="searchToggleBtn">
+            <span style="font-size: 18px;">🔍</span> Search
         </button>
         <button class="ctrl-btn feed-active" id="feedToggleBtn">
             <span style="font-size: 18px;">📱</span> Feed
@@ -84,28 +94,111 @@
         <button class="ctrl-btn" id="timelineToggleBtn">
             <span style="font-size: 18px;">⏱️</span> Timeline
         </button>
+        <button class="ctrl-btn" id="saveLoadViewBtn" onclick="UIManager.openFilterPreferencesModal()">
+            <span style="font-size: 18px;">💾</span> Save/Load View
+        </button>
+        <button class="ctrl-btn" id="aboutBtn" onclick="UIManager.openAboutModal()">
+            <span style="font-size: 18px;">ℹ️</span> About
+        </button>
+        <button class="ctrl-btn" id="resetAllBtn" onclick="App.resetAllFilters()">
+            <span style="font-size: 18px;">🔄</span> Reset All
+        </button>
+        <button class="ctrl-btn" id="legendToggleBtn">
+            <span style="font-size: 18px;">🗺️</span> Legend
+        </button>
     </div>
 
-    <!-- Bottom Filter Panel -->
-    <div class="bottom-filter-panel" id="bottomFilterPanel">
-        <div class="filter-panel-content">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label>Search Events</label>
-                    <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+    <!-- Map Legend Panel -->
+    <div class="legend-panel" id="legendPanel">
+        <div class="legend-header">
+            <h3>🗺️ Map Legend</h3>
+            <button class="legend-close" id="legendCloseBtn">×</button>
+        </div>
+        <div class="legend-content">
+            <div class="legend-section">
+                <h4>Circle Markers (Generic Events)</h4>
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #3388ff; border: 2px solid #fff;"></div>
+                    <span>Ukrainian side events</span>
                 </div>
-                <div class="filter-group" style="max-width: 200px;">
-                    <label>Start Date</label>
-                    <input type="date" id="startDate">
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #ff4444; border: 2px solid #fff;"></div>
+                    <span>Russian side events</span>
                 </div>
-                <div class="filter-group" style="max-width: 200px;">
-                    <label>End Date</label>
-                    <input type="date" id="endDate">
+                <div class="legend-item">
+                    <div class="legend-marker" style="background: #888; border: 2px solid #fff;"></div>
+                    <span>Unknown/Neutral side</span>
+                </div>
+                <div class="legend-note">Note: Faded markers = already viewed</div>
+            </div>
+            <div class="legend-section">
+                <h4>Entity Markers (Systems & Units)</h4>
+                <div class="legend-item">
+                    <div class="legend-icon">🚁</div>
+                    <span>Weapon systems (drones, missiles, etc.)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon">🪖</div>
+                    <span>Military units and brigades</span>
+                </div>
+                <div class="legend-note">Color: Blue (UA) / Red (RU) / Gray (Unknown)</div>
+            </div>
+            <div class="legend-section">
+                <h4>Flag Markers</h4>
+                <div class="legend-item">
+                    <div class="legend-flag" style="background: linear-gradient(180deg, #0057b7 50%, #ffd700 50%);"></div>
+                    <span>Ukrainian flag markers</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-flag" style="background: linear-gradient(180deg, #fff 33%, #0039a6 33%, #0039a6 66%, #d52b1e 66%);"></div>
+                    <span>Russian flag markers</span>
                 </div>
             </div>
-            <div class="filter-actions">
-                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-                <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
+        </div>
+    </div>
+
+    <!-- Bottom Search Panel -->
+    <div class="bottom-filter-panel" id="bottomSearchPanel">
+        <div class="filter-panel-content">
+            <div class="search-tabs">
+                <button class="search-tab active" id="locationSearchTab">📍 Search Location</button>
+                <button class="search-tab" id="eventSearchTab">📋 Search Events</button>
+            </div>
+
+            <!-- Location Search -->
+            <div class="search-section" id="locationSearchSection">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search Place (e.g., "Kiev", "Kyiv, Ukraine", "Mariupol")</label>
+                        <input type="text" id="locationSearchInput" placeholder="Enter city or place name...">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="searchLocationBtn">🔍 Search Location</button>
+                </div>
+                <div id="locationSearchResults" class="search-results"></div>
+            </div>
+
+            <!-- Event Search -->
+            <div class="search-section" id="eventSearchSection" style="display: none;">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search Events</label>
+                        <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+                    </div>
+                    <div class="filter-group" style="max-width: 200px;">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="filter-group" style="max-width: 200px;">
+                        <label>End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+                    <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
+                </div>
             </div>
         </div>
     </div>
@@ -203,19 +296,68 @@
         </div>
     </div>
 
+    <div id="systemsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🚀 Weapon Systems Filter</h2>
+                <button class="modal-close" onclick="closeModal('systemsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="systemsFilterSearch" class="filter-search-box" placeholder="🔍 Search systems...">
+            </div>
+            <div class="filter-controls">
+                <button class="select-all" onclick="EntityFilters.selectAllSystems()">Select All</button>
+                <button class="clear-all" onclick="EntityFilters.clearAllSystems()">Clear All</button>
+            </div>
+            <div class="modal-list">
+                <div id="systemsTagsContainer" class="filter-tags-container"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="EntityFilters.applySystemsFilter()">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="unitsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🪖 Military Units Filter</h2>
+                <button class="modal-close" onclick="closeModal('unitsModal')">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="unitsFilterSearch" class="filter-search-box" placeholder="🔍 Search units...">
+            </div>
+            <div class="filter-controls">
+                <button class="select-all" onclick="EntityFilters.selectAllUnits()">Select All</button>
+                <button class="clear-all" onclick="EntityFilters.clearAllUnits()">Clear All</button>
+            </div>
+            <div class="modal-list">
+                <div id="unitsTagsContainer" class="filter-tags-container"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="EntityFilters.applyUnitsFilter()">Apply Filter</button>
+            </div>
+        </div>
+    </div>
+
     <div id="reportsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title">📊 Daily Reports</h2>
                 <button class="modal-close" onclick="closeModal('reportsModal')">&times;</button>
             </div>
-            <div class="modal-list">
-                <div id="reportsDayList" class="day-list"></div>
-                <div id="reportContent" class="report-content" style="display: none;"></div>
+            <div class="report-selector">
+                <label for="reportDateSelect">Select Report Date:</label>
+                <select id="reportDateSelect" onchange="UIManager.showDailyReport(this.value)">
+                    <option value="">-- Select a date --</option>
+                </select>
             </div>
+            <div id="reportContent" class="report-content" style="display: none;"></div>
             <div class="modal-actions" id="reportsActions" style="display: none;">
-                <button class="modal-btn modal-btn-clear" onclick="backToReportsList()">← Back to Reports</button>
                 <button class="modal-btn modal-btn-apply" onclick="showReportEvents()">Show Events on Map</button>
+            </div>
+            <div class="report-disclaimer">
+                Reports by Vasama Advanced OSINT analysis LLM
             </div>
         </div>
     </div>
@@ -244,6 +386,76 @@
             <div id="networkGraph" style="height: 600px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa;"></div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-clear" onclick="closeModal('networkModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="filterPreferencesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">💾 Save / Load Current View</h2>
+                <button class="modal-close" onclick="closeModal('filterPreferencesModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div style="padding: 20px;">
+                    <p style="margin-bottom: 15px; color: #666;">Share your current map view and active filters with this link:</p>
+                    <input type="text" id="filterShareUrl" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-family: monospace; background: #f8f9fa;">
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="modal-btn modal-btn-apply" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
+                            📋 Copy Link
+                        </button>
+                        <button class="modal-btn modal-btn-clear" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
+                            🔗 Open in New Tab
+                        </button>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 13px; color: #999;">
+                        💡 This link preserves your current map position, zoom level, and active filters (Systems, Units, War Crimes).
+                    </p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('filterPreferencesModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">ℹ️ About</h2>
+                <button class="modal-close" onclick="closeModal('aboutModal')">&times;</button>
+            </div>
+            <div class="modal-list">
+                <div style="padding: 40px; text-align: center;">
+                    <h3 style="font-size: 24px; color: #667eea; margin-bottom: 20px;">AI makes mistakes. So do you.</h3>
+                    <p style="font-size: 18px; color: #333; margin-bottom: 30px; line-height: 1.6;">Together we can make them less?</p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.8;">
+                        This is a static development preview of realtime open data collection, analysis and visualization pipeline.
+                    </p>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 30px; line-height: 1.8;">
+                        Data is updated irregularly and most surely contains some errors (ex. with datetime, geolocation) but we are getting better everyday.
+                    </p>
+                    <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">Vasama Systems 2025</p>
+                        <p style="font-size: 14px; color: #667eea;">
+                            <a href="mailto:info@vasama.systems" style="color: #667eea; text-decoration: none; font-weight: 600;">info@vasama.systems</a>
+                        </p>
+                    </div>
+
+                    <!-- Changelog Section -->
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                        <h4 style="font-size: 18px; font-weight: 600; color: #667eea; margin-bottom: 15px;">📋 Changelog</h4>
+                        <div class="changelog-container">
+                            <div class="changelog-entry">
+                                <div class="changelog-date">14-11-2025</div>
+                                <div class="changelog-message">Geolocation model updated, events after 14.11.2025 are located more precise.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="closeModal('aboutModal')">Close</button>
             </div>
         </div>
     </div>
@@ -285,8 +497,109 @@
     <script src="warCrimeDetector.js"></script>
     <script src="dataProcessor.js"></script>
     <script src="storageManager.js"></script>
+    <script src="entities.js"></script>
+    <script src="entityFilters.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
+
+    <!-- Mobile Detection and Desktop Mode Notice -->
+    <script>
+        (function() {
+            // Detect mobile devices more accurately
+            const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth <= 1024; // Typical mobile/tablet max width
+            const hasTouchOnly = navigator.maxTouchPoints > 0 && !window.matchMedia("(pointer: fine)").matches;
+
+            // Only show on actual mobile devices (not desktop browsers or touchscreen desktops)
+            const isMobile = isMobileUserAgent && (isSmallScreen || hasTouchOnly);
+
+            // Check if user has already seen the notice
+            const hasSeenNotice = sessionStorage.getItem('mobileNoticeShown');
+
+            if (isMobile && !hasSeenNotice) {
+                // Wait for page to load before showing notice
+                window.addEventListener('load', function() {
+                    // Create overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.7);
+                        z-index: 10000;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        animation: fadeIn 0.3s ease-in;
+                    `;
+
+                    // Create notice box
+                    const noticeBox = document.createElement('div');
+                    noticeBox.style.cssText = `
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        max-width: 400px;
+                        margin: 20px;
+                        text-align: center;
+                        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    `;
+
+                    noticeBox.innerHTML = `
+                        <div style="font-size: 48px; margin-bottom: 20px;">💻</div>
+                        <h2 style="color: #667eea; margin-bottom: 15px; font-size: 22px;">Desktop Experience</h2>
+                        <p style="color: #666; margin-bottom: 20px; line-height: 1.6; font-size: 15px;">
+                            This application is optimized for desktop experience.<br>
+                            You can zoom and pan the entire page for better viewing.
+                        </p>
+                        <button id="closeMobileNotice" style="
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            border: none;
+                            padding: 12px 30px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                        ">Got it!</button>
+                    `;
+
+                    overlay.appendChild(noticeBox);
+                    document.body.appendChild(overlay);
+
+                    // Close button handler
+                    document.getElementById('closeMobileNotice').addEventListener('click', function() {
+                        overlay.style.animation = 'fadeOut 0.3s ease-out';
+                        setTimeout(function() {
+                            document.body.removeChild(overlay);
+                        }, 300);
+                        sessionStorage.setItem('mobileNoticeShown', 'true');
+                    });
+
+                    // Click overlay to close
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
+                            document.getElementById('closeMobileNotice').click();
+                        }
+                    });
+                });
+            }
+        })();
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
 </body>
 </html>
