@@ -183,7 +183,9 @@ const UIManager = {
         const systemsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'system').length;
         const unitsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'unit').length;
 
-        const dailyReports = state.dailyReports.length;
+        // Count only valid daily reports (exclude incomplete ones)
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+        const dailyReports = state.dailyReports.filter(r => !r.content || !r.content.includes(errorText)).length;
         const favoritesCount = state.favorites.size;
 
         // Save audio player state before updating
@@ -443,9 +445,16 @@ const UIManager = {
         const modal = document.getElementById('reportsModal');
         const select = document.getElementById('reportDateSelect');
 
-        // Group reports by date
+        // Group reports by date, filtering out incomplete reports
         const reportsByDate = new Map();
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+
         App.state.dailyReports.forEach(report => {
+            // Skip reports that contain the error message
+            if (report.content && report.content.includes(errorText)) {
+                return;
+            }
+
             const date = report.date;
             if (!reportsByDate.has(date)) {
                 reportsByDate.set(date, []);
@@ -463,10 +472,12 @@ const UIManager = {
                 return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
             }).join('');
 
-        // Reset content and hide Show on Map button
+        // Reset content and hide Show on Map button and Share button
         document.getElementById('reportContent').style.display = 'none';
         const showEventsBtn = document.getElementById('showEventsBtn');
         if (showEventsBtn) showEventsBtn.style.display = 'none';
+        const shareReportBtn = document.getElementById('shareReportBtn');
+        if (shareReportBtn) shareReportBtn.style.display = 'none';
 
         modal.style.display = 'block';
     },
@@ -477,6 +488,10 @@ const UIManager = {
             document.getElementById('reportContent').style.display = 'none';
             const showEventsBtn = document.getElementById('showEventsBtn');
             if (showEventsBtn) showEventsBtn.style.display = 'none';
+            const dayAnalyticsBtn = document.getElementById('dayAnalyticsBtn');
+            if (dayAnalyticsBtn) dayAnalyticsBtn.style.display = 'none';
+            const shareReportBtn = document.getElementById('shareReportBtn');
+            if (shareReportBtn) shareReportBtn.style.display = 'none';
             return;
         }
 
@@ -487,12 +502,24 @@ const UIManager = {
         }
 
         const report = reports[0];
+
+        // Check if this is an incomplete report
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+        if (report.content && report.content.includes(errorText)) {
+            alert('This report is incomplete and cannot be displayed');
+            return;
+        }
+
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        // Show the "Show on Map" button
+        // Show the "Show on Map" button, "Day Analytics" button, and "Share Report" button
         const showEventsBtn = document.getElementById('showEventsBtn');
         if (showEventsBtn) showEventsBtn.style.display = 'inline-block';
+        const dayAnalyticsBtn = document.getElementById('dayAnalyticsBtn');
+        if (dayAnalyticsBtn) dayAnalyticsBtn.style.display = 'inline-block';
+        const shareReportBtn = document.getElementById('shareReportBtn');
+        if (shareReportBtn) shareReportBtn.style.display = 'inline-block';
 
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
@@ -547,6 +574,15 @@ const UIManager = {
 
         // Clean up empty paragraphs
         formattedContent = formattedContent.replace(/<p class="report-paragraph"><\/p>/g, '');
+
+        // Step 7: Add interactive hyperlinks for sources, entities, and locations
+        try {
+            if (typeof HyperlinkProcessor !== 'undefined' && HyperlinkProcessor.processDailyReportText) {
+                formattedContent = HyperlinkProcessor.processDailyReportText(formattedContent, date);
+            }
+        } catch (error) {
+            console.warn('Failed to add hyperlinks to daily report:', error);
+        }
 
         content.innerHTML = `
             <div class="report-container">
@@ -897,11 +933,21 @@ const UIManager = {
             body.classList.remove('dark-mode');
             btn.innerHTML = '<span style="font-size: 18px;">🌙</span>';
             localStorage.setItem('darkMode', 'false');
+
+            // Switch map to light theme
+            if (typeof MapManager !== 'undefined' && MapManager.setMapTheme) {
+                MapManager.setMapTheme(false);
+            }
         } else {
             // Switch to dark mode
             body.classList.add('dark-mode');
             btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
             localStorage.setItem('darkMode', 'true');
+
+            // Switch map to dark theme
+            if (typeof MapManager !== 'undefined' && MapManager.setMapTheme) {
+                MapManager.setMapTheme(true);
+            }
         }
     },
 
@@ -929,6 +975,112 @@ const UIManager = {
         const video = document.getElementById('videoPlayer');
         video.pause();
         modal.style.display = 'none';
+    },
+
+    shareReport: function() {
+        if (!App.state.currentReport || !App.state.currentReport.date) {
+            alert('No report is currently open');
+            return;
+        }
+
+        const reportDate = App.state.currentReport.date;
+        const url = `${window.location.origin}${window.location.pathname}?report=${reportDate}`;
+
+        // Try to copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Report link copied to clipboard!\n\n' + url);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback: show the URL in a prompt
+                prompt('Copy this link:', url);
+            });
+        } else {
+            // Fallback for browsers without clipboard API
+            prompt('Copy this link:', url);
+        }
+    },
+
+    showDayAnalytics: function() {
+        if (!App.state.currentReport || !App.state.currentReport.date) {
+            alert('No report is currently open');
+            return;
+        }
+
+        const reportDate = App.state.currentReport.date;
+        console.log('📊 Opening analytics for date:', reportDate);
+
+        // Set date filters to show only this day
+        document.getElementById('startDate').value = reportDate;
+        document.getElementById('endDate').value = reportDate;
+
+        // Apply filters to update the map with only this day's events
+        App.applyFilters();
+
+        // Wait for filters to apply, then open analytics modal
+        setTimeout(() => {
+            // Open analytics modal which will show charts for the filtered data
+            if (typeof AnalyticsManager !== 'undefined') {
+                AnalyticsManager.openAnalyticsModal();
+            }
+        }, 300);
+    },
+
+    checkReportUrlParameter: function() {
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportDate = urlParams.get('report');
+
+        console.log('🔍 Checking for report URL parameter...');
+        console.log('   URL params:', window.location.search);
+        console.log('   Report date param:', reportDate);
+        console.log('   Daily reports loaded:', App.state.dailyReports ? App.state.dailyReports.length : 0);
+
+        if (!reportDate) {
+            console.log('   No report parameter found in URL');
+            return;
+        }
+
+        console.log('📅 Opening report from URL parameter:', reportDate);
+
+        // Ensure daily reports are loaded
+        if (!App.state.dailyReports || App.state.dailyReports.length === 0) {
+            console.error('❌ Daily reports not loaded yet, retrying in 500ms...');
+            setTimeout(() => this.checkReportUrlParameter(), 500);
+            return;
+        }
+
+        // Open the reports modal
+        this.openReportsModal();
+        console.log('   Modal opening triggered');
+
+        // Wait for modal to be fully rendered and populated
+        setTimeout(() => {
+            console.log('   Checking for dropdown element...');
+            const select = document.getElementById('reportDateSelect');
+
+            if (!select) {
+                console.error('❌ Report select dropdown not found after timeout');
+                alert('Error: Could not open daily reports. Please try clicking Daily Reports button manually.');
+                return;
+            }
+
+            console.log('   Dropdown found with', select.options.length, 'options');
+
+            // Check if the date exists in the dropdown
+            const option = Array.from(select.options).find(opt => opt.value === reportDate);
+
+            if (option) {
+                console.log('   Report date found in dropdown, opening report...');
+                select.value = reportDate;
+                this.showDailyReport(reportDate);
+                console.log('✅ Report opened successfully:', reportDate);
+            } else {
+                console.warn('⚠️ Report date not found in dropdown:', reportDate);
+                console.log('   Available dates:', Array.from(select.options).map(opt => opt.value).filter(v => v).join(', '));
+                alert('Report for ' + reportDate + ' not found. It may be incomplete or missing.');
+            }
+        }, 1000); // Increased timeout to 1 second for better reliability
     }
 };
 

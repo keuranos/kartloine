@@ -72,14 +72,23 @@ const DataProcessor = {
 
     formatAnalysisText: function(text) {
         if (!text) return '';
-        
+
         text = text.replace(/^\*\s+(.+)$/gm, '<li>$1</li>');
         text = text.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
         text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
         text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         text = text.replace(/\n\n/g, '</p><p>');
         text = '<p>' + text + '</p>';
-        
+
+        // Add interactive hyperlinks for sources, entities, and locations
+        try {
+            if (typeof HyperlinkProcessor !== 'undefined' && HyperlinkProcessor.processEventDetailText) {
+                text = HyperlinkProcessor.processEventDetailText(text);
+            }
+        } catch (error) {
+            console.warn('Failed to add hyperlinks to event detail:', error);
+        }
+
         return text;
     }
 };

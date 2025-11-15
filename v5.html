@@ -36,10 +36,15 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        ⏳ Loading...
+    </div>
+
     <div class="header">
         <h1>🔍 OSINT Event Database - Visual Analytics</h1>
         <div class="stats" id="stats"></div>
-        
+
         <!-- Time Range Controls - Redesigned with Manual Inputs -->
         <div class="time-slider-container" id="timeSliderContainer" style="display: none;">
             <div class="time-controls-row">
@@ -82,6 +87,12 @@
 
     <!-- Control Buttons Container -->
     <div class="bottom-controls">
+        <!-- Mobile hamburger menu button (hidden on desktop) -->
+        <button class="ctrl-btn mobile-menu-toggle" id="mobileMenuToggle" onclick="MobileMenu.toggle()">
+            <span style="font-size: 18px;">☰</span> Menu
+        </button>
+
+        <!-- Primary controls (always visible) -->
         <button class="ctrl-btn" id="searchToggleBtn">
             <span style="font-size: 18px;">🔍</span> Search
         </button>
@@ -91,22 +102,55 @@
         <button class="ctrl-btn" id="timelineToggleBtn">
             <span style="font-size: 18px;">⏱️</span> Timeline
         </button>
-        <button class="ctrl-btn" id="saveLoadViewBtn" onclick="UIManager.openFilterPreferencesModal()">
-            <span style="font-size: 18px;">💾</span> Save/Load View
+
+        <!-- Secondary controls (hidden on mobile, shown in menu) -->
+        <button class="ctrl-btn desktop-only" id="analyticsBtn" onclick="AnalyticsManager.openAnalyticsModal()">
+            <span style="font-size: 18px;">📊</span> Analytics
         </button>
-        <button class="ctrl-btn" id="aboutBtn" onclick="UIManager.openAboutModal()">
+        <button class="ctrl-btn desktop-only" id="exportBtn" onclick="ExportManager.openExportModal()">
+            <span style="font-size: 18px;">📥</span> Export
+        </button>
+        <button class="ctrl-btn desktop-only" id="aboutBtn" onclick="UIManager.openAboutModal()">
             <span style="font-size: 18px;">ℹ️</span> About
         </button>
-        <button class="ctrl-btn" id="resetAllBtn" onclick="App.resetAllFilters()">
+        <button class="ctrl-btn ctrl-btn-danger desktop-only" id="resetAllBtn" onclick="App.resetAllFilters()">
             <span style="font-size: 18px;">🔄</span> Reset All
         </button>
-        <button class="ctrl-btn" id="legendToggleBtn">
+        <button class="ctrl-btn desktop-only" id="legendToggleBtn">
             <span style="font-size: 18px;">🗺️</span>
         </button>
         <button class="ctrl-btn" id="darkModeToggleBtn" onclick="UIManager.toggleDarkMode()">
             <span style="font-size: 18px;">🌙</span>
         </button>
     </div>
+
+    <!-- Mobile slide-out menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-menu-close" onclick="MobileMenu.close()">&times;</button>
+        </div>
+        <div class="mobile-menu-content">
+            <button class="mobile-menu-item" onclick="AnalyticsManager.openAnalyticsModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">📊</span> Analytics
+            </button>
+            <button class="mobile-menu-item" onclick="ExportManager.openExportModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">📥</span> Export
+            </button>
+            <button class="mobile-menu-item" onclick="UIManager.openAboutModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">ℹ️</span> About
+            </button>
+            <button class="mobile-menu-item" onclick="App.resetAllFilters(); MobileMenu.close();">
+                <span style="font-size: 20px;">🔄</span> Reset All Filters
+            </button>
+            <button class="mobile-menu-item" onclick="document.getElementById('legendToggleBtn').click(); MobileMenu.close();">
+                <span style="font-size: 20px;">🗺️</span> Map Legend
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile menu overlay (click to close) -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileMenu.close()"></div>
 
     <!-- Map Legend Panel -->
     <div class="legend-panel" id="legendPanel">
@@ -183,8 +227,13 @@
             <div class="search-section" id="eventSearchSection" style="display: none;">
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>Search Events</label>
-                        <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+                        <label>
+                            Search Events
+                            <button class="search-help-btn" onclick="SearchEnhancer.showSearchHelp()" title="Show search syntax help">
+                                ❓
+                            </button>
+                        </label>
+                        <input type="text" id="searchInput" placeholder="Try: kinzhal AND kharkiv, drone OR missile, etc...">
                     </div>
                     <div class="filter-group" style="max-width: 200px;">
                         <label>Start Date</label>
@@ -195,6 +244,20 @@
                         <input type="date" id="endDate">
                     </div>
                 </div>
+
+                <!-- Date Range Presets -->
+                <div class="date-presets">
+                    <span class="date-presets-label">Quick Ranges:</span>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('today')">Today</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('yesterday')">Yesterday</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('last7days')">Last 7 Days</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('last30days')">Last 30 Days</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('thisMonth')">This Month</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('lastMonth')">Last Month</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('thisYear')">This Year</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('all')">All Time</button>
+                </div>
+
                 <div class="filter-actions">
                     <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
                     <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
@@ -275,17 +338,45 @@
                         </label>
                     </div>
                     <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-no-indication" value="no-indication">
+                        <label class="modal-item-label" for="wc-no-indication">
+                            <strong>No Indication</strong><br>
+                            <small style="color: #999;">Events without war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-low" value="low">
+                        <label class="modal-item-label" for="wc-low">
+                            <strong>Low Severity (1-3)</strong><br>
+                            <small style="color: #999;">Events with low war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-medium" value="medium">
+                        <label class="modal-item-label" for="wc-medium">
+                            <strong>Medium Severity (4-6)</strong><br>
+                            <small style="color: #999;">Events with medium war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-high" value="high">
+                        <label class="modal-item-label" for="wc-high">
+                            <strong>High Severity (7-10)</strong><br>
+                            <small style="color: #999;">Events with high war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
                         <input type="radio" name="wcFilter" id="wc-likely" value="likely">
                         <label class="modal-item-label" for="wc-likely">
-                            <strong>Likely War Crimes</strong><br>
-                            <small style="color: #999;">Events with score ≥ 2 (treatment of persons OR civilian targets)</small>
+                            <strong>All War Crimes (Any Score)</strong><br>
+                            <small style="color: #999;">Events with any war crime indication (score ≥ 1)</small>
                         </label>
                     </div>
                     <div class="modal-item">
                         <input type="radio" name="wcFilter" id="wc-strong" value="strong">
                         <label class="modal-item-label" for="wc-strong">
-                            <strong>Strong Likely War Crimes</strong><br>
-                            <small style="color: #999;">Events with score ≥ 4 (multiple strong indicators)</small>
+                            <strong>Medium-High Combined (4-10)</strong><br>
+                            <small style="color: #999;">Events with score ≥ 4 (medium and high severity)</small>
                         </label>
                     </div>
                 </div>
@@ -355,6 +446,12 @@
                     <button class="report-btn report-btn-map" id="showEventsBtn" style="display: none;" onclick="showReportEvents()">
                         <span style="font-size: 16px;">🗺️</span> Show on Map
                     </button>
+                    <button class="report-btn report-btn-analytics" id="dayAnalyticsBtn" style="display: none;" onclick="UIManager.showDayAnalytics()">
+                        <span style="font-size: 16px;">📊</span> Day Analytics
+                    </button>
+                    <button class="report-btn report-btn-share" id="shareReportBtn" style="display: none;" onclick="UIManager.shareReport()">
+                        <span style="font-size: 16px;">🔗</span> Share Report
+                    </button>
                     <button class="report-btn report-btn-video" onclick="UIManager.openVideoModal()">
                         <span style="font-size: 16px;">▶️</span> OSINT Videoflow
                     </button>
@@ -395,31 +492,94 @@
         </div>
     </div>
 
-    <div id="filterPreferencesModal" class="modal">
-        <div class="modal-content">
+    <div id="exportModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h2 class="modal-title">💾 Save / Load Current View</h2>
-                <button class="modal-close" onclick="closeModal('filterPreferencesModal')">&times;</button>
+                <h2 class="modal-title">📥 Export & Share</h2>
+                <button class="modal-close" onclick="closeModal('exportModal')">&times;</button>
             </div>
-            <div class="modal-list">
-                <div style="padding: 20px;">
-                    <p style="margin-bottom: 15px; color: #666;">Share your current map view and active filters with this link:</p>
-                    <input type="text" id="filterShareUrl" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-family: monospace; background: #f8f9fa;">
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="modal-btn modal-btn-apply" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
+            <div class="export-container">
+                <!-- CSV Export Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">📊 Export to CSV</h3>
+                    <p class="export-section-desc">Download the currently filtered events as a CSV file for external analysis.</p>
+                    <button class="export-action-btn" onclick="ExportManager.exportToCSV()">
+                        📥 Download CSV
+                    </button>
+                </div>
+
+                <!-- Shareable Link Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">🔗 Shareable Link</h3>
+                    <p class="export-section-desc">Share your current view with this link (preserves map position, zoom, and all active filters):</p>
+                    <input type="text" id="filterShareUrl" readonly class="export-url-input">
+                    <div class="export-button-row">
+                        <button class="export-action-btn" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
                             📋 Copy Link
                         </button>
-                        <button class="modal-btn modal-btn-clear" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
+                        <button class="export-action-btn export-action-btn-secondary" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
                             🔗 Open in New Tab
                         </button>
                     </div>
-                    <p style="margin-top: 20px; font-size: 13px; color: #999;">
-                        💡 This link preserves your current map position, zoom level, and active filters (Systems, Units, War Crimes).
-                    </p>
+                </div>
+
+                <!-- Filter Presets Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">💾 Filter Presets</h3>
+                    <p class="export-section-desc">Save and load your favorite filter combinations for quick access.</p>
+                    <button class="export-action-btn" onclick="ExportManager.saveFilterPreset()">
+                        💾 Save Current Filters
+                    </button>
+                    <div id="presetsListContainer" style="margin-top: 20px;">
+                        <!-- Presets list will be populated here -->
+                    </div>
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-clear" onclick="closeModal('filterPreferencesModal')">Close</button>
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('exportModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="analyticsModal" class="modal">
+        <div class="modal-content" style="max-width: 1400px; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 Analytics Dashboard</h2>
+                <button class="modal-close" onclick="closeModal('analyticsModal')">&times;</button>
+            </div>
+            <div class="analytics-container">
+                <!-- Events Timeline Chart -->
+                <div class="analytics-chart-container">
+                    <h3 class="analytics-chart-title">📈 Events Over Time</h3>
+                    <canvas id="timelineChart"></canvas>
+                </div>
+
+                <!-- Two columns for smaller charts -->
+                <div class="analytics-row">
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">🔧 Top 10 Systems</h3>
+                        <canvas id="systemsChart"></canvas>
+                    </div>
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">⚔️ Top 10 Units</h3>
+                        <canvas id="unitsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-row">
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">📍 Top 10 Locations</h3>
+                        <canvas id="locationsChart"></canvas>
+                    </div>
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">⚠️ War Crimes Distribution</h3>
+                        <canvas id="warCrimesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-apply" onclick="AnalyticsManager.resetFiltersAndRefresh()">🔄 Reset Filters & Refresh</button>
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('analyticsModal')">Close</button>
             </div>
         </div>
     </div>
@@ -535,6 +695,7 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Application Modules -->
     <script src="warCrimeDetector.js"></script>
@@ -542,6 +703,12 @@
     <script src="storageManager.js"></script>
     <script src="entities.js"></script>
     <script src="entityFilters.js"></script>
+    <script src="hyperlinkProcessor.js"></script>
+    <script src="analyticsManager.js"></script>
+    <script src="exportManager.js"></script>
+    <script src="searchEnhancer.js"></script>
+    <script src="performanceOptimizer.js"></script>
+    <script src="mobileMenu.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>

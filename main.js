@@ -535,6 +535,18 @@ const App = {
 
                     // Update stats to show correct report count
                     UIManager.updateStats(this.state.filteredEvents, this.state);
+
+                    // Check for report parameter in URL and auto-open if present
+                    console.log('🔗 About to check for report URL parameter...');
+                    try {
+                        if (typeof UIManager.checkReportUrlParameter === 'function') {
+                            UIManager.checkReportUrlParameter();
+                        } else {
+                            console.error('❌ UIManager.checkReportUrlParameter is not a function!');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error calling checkReportUrlParameter:', error);
+                    }
                 } else {
                     console.warn('⚠️ No daily reports found in raportit.csv');
                     this.state.dailyReports = [];
@@ -686,36 +698,72 @@ const App = {
     },
 
     applyFilters: function() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
+        // Show loading indicator for large datasets
+        if (this.state.allEvents.length > 500 && typeof PerformanceOptimizer !== 'undefined') {
+            PerformanceOptimizer.showLoading('Applying filters...');
+        }
 
-        this.state.filteredEvents = this.state.allEvents.filter(event => {
-            if (searchTerm && !JSON.stringify(event).toLowerCase().includes(searchTerm)) return false;
-            if (startDate && event.event_date < startDate) return false;
-            if (endDate && event.event_date > endDate) return false;
+        // Use setTimeout to allow UI to update before heavy processing
+        setTimeout(() => {
+            const searchTerm = document.getElementById('searchInput').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
 
-            // War crime filter
-            if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
-            if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
+            // Start with all events
+            let filtered = this.state.allEvents;
 
-            // Entity filters (systems & units)
-            if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;
-
-            // Modal selections
-            const ms = this.state.modalSelections;
-            if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
-            if (ms.locations.size > 0 && !ms.locations.has(event.event_location)) return false;
-            if (ms.entities.size > 0) {
-                if (!event.osint_entities) return false;
-                const entities = event.osint_entities.split(',').map(ent => ent.trim());
-                if (!entities.some(entity => ms.entities.has(entity))) return false;
+            // Apply boolean search first if search term exists
+            if (searchTerm && searchTerm.trim()) {
+                filtered = SearchEnhancer.performBooleanSearch(searchTerm, filtered);
             }
 
-            return true;
-        });
+            // Apply other filters
+            this.state.filteredEvents = filtered.filter(event => {
+                if (startDate && event.event_date < startDate) return false;
+                if (endDate && event.event_date > endDate) return false;
 
-        this.render();
+                // War crime filter
+                const wcFilter = this.state.warCrimeFilter;
+                if (wcFilter !== 'all') {
+                    const hasWC = event.__wcResult && event.__wcResult.tag === 'pos';
+                    const score = hasWC ? event.__wcResult.score : 0;
+
+                    if (wcFilter === 'no-indication' && hasWC) return false;
+                    if (wcFilter === 'low' && (!hasWC || score < 1 || score > 3)) return false;
+                    if (wcFilter === 'medium' && (!hasWC || score < 4 || score > 6)) return false;
+                    if (wcFilter === 'high' && (!hasWC || score < 7)) return false;
+                    if (wcFilter === 'likely' && !hasWC) return false;
+                    if (wcFilter === 'strong' && (!hasWC || score < 4)) return false;
+                }
+
+                // Entity filters (systems & units)
+                if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;
+
+                // Modal selections
+                const ms = this.state.modalSelections;
+                if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
+                if (ms.locations.size > 0 && !ms.locations.has(event.event_location)) return false;
+                if (ms.entities.size > 0) {
+                    if (!event.osint_entities) return false;
+                    const entities = event.osint_entities.split(',').map(ent => ent.trim());
+                    if (!entities.some(entity => ms.entities.has(entity))) return false;
+                }
+
+                return true;
+            });
+
+            // Check for large result sets
+            if (typeof PerformanceOptimizer !== 'undefined') {
+                PerformanceOptimizer.checkLargeResultSet(this.state.filteredEvents.length);
+            }
+
+            this.render();
+
+            // Hide loading indicator
+            if (typeof PerformanceOptimizer !== 'undefined') {
+                PerformanceOptimizer.hideLoading();
+            }
+        }, 10);
     },
 
     resetAllFilters: function() {
