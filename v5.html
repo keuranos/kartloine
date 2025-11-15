@@ -87,6 +87,12 @@
 
     <!-- Control Buttons Container -->
     <div class="bottom-controls">
+        <!-- Mobile hamburger menu button (hidden on desktop) -->
+        <button class="ctrl-btn mobile-menu-toggle" id="mobileMenuToggle" onclick="MobileMenu.toggle()">
+            <span style="font-size: 18px;">☰</span> Menu
+        </button>
+
+        <!-- Primary controls (always visible) -->
         <button class="ctrl-btn" id="searchToggleBtn">
             <span style="font-size: 18px;">🔍</span> Search
         </button>
@@ -96,25 +102,55 @@
         <button class="ctrl-btn" id="timelineToggleBtn">
             <span style="font-size: 18px;">⏱️</span> Timeline
         </button>
-        <button class="ctrl-btn" id="analyticsBtn" onclick="AnalyticsManager.openAnalyticsModal()">
+
+        <!-- Secondary controls (hidden on mobile, shown in menu) -->
+        <button class="ctrl-btn desktop-only" id="analyticsBtn" onclick="AnalyticsManager.openAnalyticsModal()">
             <span style="font-size: 18px;">📊</span> Analytics
         </button>
-        <button class="ctrl-btn" id="exportBtn" onclick="ExportManager.openExportModal()">
+        <button class="ctrl-btn desktop-only" id="exportBtn" onclick="ExportManager.openExportModal()">
             <span style="font-size: 18px;">📥</span> Export
         </button>
-        <button class="ctrl-btn" id="aboutBtn" onclick="UIManager.openAboutModal()">
+        <button class="ctrl-btn desktop-only" id="aboutBtn" onclick="UIManager.openAboutModal()">
             <span style="font-size: 18px;">ℹ️</span> About
         </button>
-        <button class="ctrl-btn" id="resetAllBtn" onclick="App.resetAllFilters()">
+        <button class="ctrl-btn desktop-only" id="resetAllBtn" onclick="App.resetAllFilters()">
             <span style="font-size: 18px;">🔄</span> Reset All
         </button>
-        <button class="ctrl-btn" id="legendToggleBtn">
+        <button class="ctrl-btn desktop-only" id="legendToggleBtn">
             <span style="font-size: 18px;">🗺️</span>
         </button>
         <button class="ctrl-btn" id="darkModeToggleBtn" onclick="UIManager.toggleDarkMode()">
             <span style="font-size: 18px;">🌙</span>
         </button>
     </div>
+
+    <!-- Mobile slide-out menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="mobile-menu-close" onclick="MobileMenu.close()">&times;</button>
+        </div>
+        <div class="mobile-menu-content">
+            <button class="mobile-menu-item" onclick="AnalyticsManager.openAnalyticsModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">📊</span> Analytics
+            </button>
+            <button class="mobile-menu-item" onclick="ExportManager.openExportModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">📥</span> Export
+            </button>
+            <button class="mobile-menu-item" onclick="UIManager.openAboutModal(); MobileMenu.close();">
+                <span style="font-size: 20px;">ℹ️</span> About
+            </button>
+            <button class="mobile-menu-item" onclick="App.resetAllFilters(); MobileMenu.close();">
+                <span style="font-size: 20px;">🔄</span> Reset All Filters
+            </button>
+            <button class="mobile-menu-item" onclick="document.getElementById('legendToggleBtn').click(); MobileMenu.close();">
+                <span style="font-size: 20px;">🗺️</span> Map Legend
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile menu overlay (click to close) -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay" onclick="MobileMenu.close()"></div>
 
     <!-- Map Legend Panel -->
     <div class="legend-panel" id="legendPanel">
@@ -640,6 +676,7 @@
     <script src="exportManager.js"></script>
     <script src="searchEnhancer.js"></script>
     <script src="performanceOptimizer.js"></script>
+    <script src="mobileMenu.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
