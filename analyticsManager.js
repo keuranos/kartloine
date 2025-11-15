@@ -50,11 +50,12 @@ const AnalyticsManager = {
     generateTimelineChart: function() {
         const events = App.state.filteredEvents;
 
-        // Group events by date
+        // Group events by date (only dates from November 1, 2025 onwards)
+        const cutoffDate = '2025-11-01';
         const eventsByDate = {};
         events.forEach(event => {
             const date = event.event_date;
-            if (date && date !== 'undefined' && date !== 'unknown') {
+            if (date && date !== 'undefined' && date !== 'unknown' && date >= cutoffDate) {
                 eventsByDate[date] = (eventsByDate[date] || 0) + 1;
             }
         });
@@ -556,6 +557,55 @@ const AnalyticsManager = {
                 this.charts[key] = null;
             }
         });
+    },
+
+    /**
+     * Reset all filters and refresh analytics
+     */
+    resetFiltersAndRefresh: function() {
+        console.log('🔄 Resetting all filters and refreshing analytics...');
+
+        // Reset all filters using App.resetAllFilters
+        // Clear search
+        document.getElementById('searchInput').value = '';
+
+        // Clear date filters
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+
+        // Reset war crime filter
+        const allRadio = document.getElementById('wc-all');
+        if (allRadio) {
+            allRadio.checked = true;
+            App.state.warCrimeFilter = 'all';
+        }
+
+        // Clear entity filters
+        if (typeof EntityFilters !== 'undefined') {
+            EntityFilters.selectedSystems.clear();
+            EntityFilters.selectedUnits.clear();
+
+            // Remove active class from all entity filter tags
+            document.querySelectorAll('[data-system], [data-unit]').forEach(tag => {
+                tag.classList.remove('active');
+            });
+        }
+
+        // Clear modal selections
+        App.state.modalSelections = {
+            events: new Set(),
+            locations: new Set(),
+            entities: new Set()
+        };
+
+        // Apply filters to update the map
+        App.applyFilters();
+
+        // Wait a bit for filters to apply, then regenerate all charts
+        setTimeout(() => {
+            this.generateAllCharts();
+            console.log('✅ Filters reset and analytics refreshed');
+        }, 200);
     }
 };
 
