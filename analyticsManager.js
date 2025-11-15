@@ -50,8 +50,8 @@ const AnalyticsManager = {
     generateTimelineChart: function() {
         const events = App.state.filteredEvents;
 
-        // Group events by date (only dates from November 1, 2025 onwards)
-        const cutoffDate = '2025-11-01';
+        // Group events by date (only dates from November 15, 2025 onwards)
+        const cutoffDate = '2025-11-15';
         const eventsByDate = {};
         events.forEach(event => {
             const date = event.event_date;

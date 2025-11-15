@@ -929,11 +929,21 @@ const UIManager = {
             body.classList.remove('dark-mode');
             btn.innerHTML = '<span style="font-size: 18px;">🌙</span>';
             localStorage.setItem('darkMode', 'false');
+
+            // Switch map to light theme
+            if (typeof MapManager !== 'undefined' && MapManager.setMapTheme) {
+                MapManager.setMapTheme(false);
+            }
         } else {
             // Switch to dark mode
             body.classList.add('dark-mode');
             btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
             localStorage.setItem('darkMode', 'true');
+
+            // Switch map to dark theme
+            if (typeof MapManager !== 'undefined' && MapManager.setMapTheme) {
+                MapManager.setMapTheme(true);
+            }
         }
     },
 

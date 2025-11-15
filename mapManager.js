@@ -1,6 +1,9 @@
 // Map Manager Module with Layered Marker System
 const MapManager = {
     map: null,
+    lightTileLayer: null,        // Light theme map tiles
+    darkTileLayer: null,         // Dark theme map tiles
+    currentTileLayer: null,      // Currently active tile layer
     clusterLayer: null,          // Bottom layer: generic circle markers (clustered)
     specialLayer: null,           // Middle layer: flag markers for sides
     entityLayer: null,            // Top layer: system/unit markers (not clustered)
@@ -15,12 +18,28 @@ const MapManager = {
             renderer: L.canvas({ tolerance: 5 })
         }).setView([49.0, 32.0], 6);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Create light tile layer (standard OpenStreetMap)
+        this.lightTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
             updateWhenIdle: false,
             updateWhenZooming: false,
             keepBuffer: 2
-        }).addTo(this.map);
+        });
+
+        // Create dark tile layer (CartoDB Dark Matter)
+        this.darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO',
+            updateWhenIdle: false,
+            updateWhenZooming: false,
+            keepBuffer: 2,
+            subdomains: 'abcd',
+            maxZoom: 20
+        });
+
+        // Add the appropriate tile layer based on current dark mode state
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        this.currentTileLayer = isDarkMode ? this.darkTileLayer : this.lightTileLayer;
+        this.currentTileLayer.addTo(this.map);
 
         // Create three layers in order (bottom to top)
         // 1. Cluster layer for generic events
@@ -320,5 +339,25 @@ const MapManager = {
             // Fallback to legacy icon
             marker.setIcon(this.getMarkerIcon(weaponType, side, isViewed));
         }
+    },
+
+    /**
+     * Toggle between light and dark map tile layers
+     */
+    setMapTheme: function(isDarkMode) {
+        if (!this.map || !this.lightTileLayer || !this.darkTileLayer) {
+            return;
+        }
+
+        // Remove current tile layer
+        if (this.currentTileLayer) {
+            this.map.removeLayer(this.currentTileLayer);
+        }
+
+        // Add new tile layer based on theme
+        this.currentTileLayer = isDarkMode ? this.darkTileLayer : this.lightTileLayer;
+        this.currentTileLayer.addTo(this.map);
+
+        console.log(`🗺️ Map theme switched to ${isDarkMode ? 'dark' : 'light'} mode`);
     }
 };

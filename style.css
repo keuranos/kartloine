@@ -717,6 +717,19 @@ body.feed-closed .bottom-controls {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
+/* Danger/Reset button styling */
+.ctrl-btn-danger {
+    background: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+}
+
+.ctrl-btn-danger:hover {
+    background: #c82333 !important;
+    border-color: #bd2130 !important;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.5) !important;
+}
+
 .ctrl-btn.feed-active {
     background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     color: white;
@@ -2052,6 +2065,17 @@ body.dark-mode .ctrl-btn.feed-active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+body.dark-mode .ctrl-btn-danger {
+    background: #e74c3c !important;
+    border-color: #e74c3c !important;
+}
+
+body.dark-mode .ctrl-btn-danger:hover {
+    background: #c0392b !important;
+    border-color: #c0392b !important;
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6) !important;
+}
+
 body.dark-mode .bottom-filter-panel {
     background: #1e1e2e;
     border-top: 2px solid #3a3a4e;
@@ -2182,6 +2206,39 @@ body.dark-mode .event-btn.favorite:hover {
 body.dark-mode .event-btn.favorite.active {
     background: #fee140;
     color: #333;
+}
+
+/* Report buttons dark mode */
+body.dark-mode .report-btn {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .report-btn:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .report-btn-map {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.dark-mode .report-btn-map:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+}
+
+body.dark-mode .report-btn-share {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+body.dark-mode .report-btn-share:hover {
+    background: linear-gradient(135deg, #32d86a 0%, #27e8c6 100%);
+}
+
+body.dark-mode .report-btn-video {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+body.dark-mode .report-btn-video:hover {
+    background: linear-gradient(135deg, #df7fe9 0%, #e4465a 100%);
 }
 
 body.dark-mode .analysis-section {
