@@ -183,7 +183,9 @@ const UIManager = {
         const systemsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'system').length;
         const unitsCount = filteredEvents.filter(e => e.__match && e.__match.group === 'unit').length;
 
-        const dailyReports = state.dailyReports.length;
+        // Count only valid daily reports (exclude incomplete ones)
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+        const dailyReports = state.dailyReports.filter(r => !r.content || !r.content.includes(errorText)).length;
         const favoritesCount = state.favorites.size;
 
         // Save audio player state before updating
@@ -443,9 +445,16 @@ const UIManager = {
         const modal = document.getElementById('reportsModal');
         const select = document.getElementById('reportDateSelect');
 
-        // Group reports by date
+        // Group reports by date, filtering out incomplete reports
         const reportsByDate = new Map();
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+
         App.state.dailyReports.forEach(report => {
+            // Skip reports that contain the error message
+            if (report.content && report.content.includes(errorText)) {
+                return;
+            }
+
             const date = report.date;
             if (!reportsByDate.has(date)) {
                 reportsByDate.set(date, []);
@@ -491,6 +500,14 @@ const UIManager = {
         }
 
         const report = reports[0];
+
+        // Check if this is an incomplete report
+        const errorText = "I'm ready to compile the daily OSINT report, but I need the actual analysis results of the Telegram";
+        if (report.content && report.content.includes(errorText)) {
+            alert('This report is incomplete and cannot be displayed');
+            return;
+        }
+
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
