@@ -186,6 +186,17 @@ const UIManager = {
         const dailyReports = state.dailyReports.length;
         const favoritesCount = state.favorites.size;
 
+        // Save audio player state before updating
+        const audioPlayer = document.getElementById('timelinePodcast');
+        let audioState = null;
+        if (audioPlayer) {
+            audioState = {
+                currentTime: audioPlayer.currentTime,
+                paused: audioPlayer.paused,
+                volume: audioPlayer.volume
+            };
+        }
+
         const statsHtml = `
             <div class="stat-card total" onclick="UIManager.openModal('events')">
                 <div class="label">EVENTS</div>
@@ -228,6 +239,21 @@ const UIManager = {
         `;
 
         document.getElementById('stats').innerHTML = statsHtml;
+
+        // Restore audio player state after updating
+        if (audioState) {
+            const newAudioPlayer = document.getElementById('timelinePodcast');
+            if (newAudioPlayer) {
+                newAudioPlayer.currentTime = audioState.currentTime;
+                newAudioPlayer.volume = audioState.volume;
+                if (!audioState.paused) {
+                    // Use a promise to handle autoplay restrictions
+                    newAudioPlayer.play().catch(err => {
+                        console.log('Audio autoplay prevented:', err);
+                    });
+                }
+            }
+        }
 
         // Date range display removed - now integrated into timeline controls
     },
@@ -437,9 +463,10 @@ const UIManager = {
                 return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
             }).join('');
 
-        // Reset content and hide actions
+        // Reset content and hide Show on Map button
         document.getElementById('reportContent').style.display = 'none';
-        document.getElementById('reportsActions').style.display = 'none';
+        const showEventsBtn = document.getElementById('showEventsBtn');
+        if (showEventsBtn) showEventsBtn.style.display = 'none';
 
         modal.style.display = 'block';
     },
@@ -448,7 +475,8 @@ const UIManager = {
         // Handle empty selection
         if (!date) {
             document.getElementById('reportContent').style.display = 'none';
-            document.getElementById('reportsActions').style.display = 'none';
+            const showEventsBtn = document.getElementById('showEventsBtn');
+            if (showEventsBtn) showEventsBtn.style.display = 'none';
             return;
         }
 
@@ -462,7 +490,9 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        document.getElementById('reportsActions').style.display = 'flex';
+        // Show the "Show on Map" button
+        const showEventsBtn = document.getElementById('showEventsBtn');
+        if (showEventsBtn) showEventsBtn.style.display = 'inline-block';
 
         const content = document.getElementById('reportContent');
         content.style.display = 'block';

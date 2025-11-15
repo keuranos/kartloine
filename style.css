@@ -1829,6 +1829,11 @@ body.map-moving .flag-marker {
     background: #764ba2;
 }
 
+/* Reports Modal - Wider */
+.reports-modal-wide {
+    max-width: 1400px !important;
+}
+
 /* Report Selector (Dropdown) */
 .report-selector {
     margin-bottom: 20px;
@@ -1846,8 +1851,14 @@ body.map-moving .flag-marker {
     font-size: 14px;
 }
 
+.report-selector-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .report-selector select {
-    width: 100%;
+    flex: 1;
     padding: 12px 15px;
     border: 2px solid #667eea;
     border-radius: 8px;
@@ -1868,6 +1879,43 @@ body.map-moving .flag-marker {
     outline: none;
     border-color: #764ba2;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Report Buttons */
+.report-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.report-btn-map {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.report-btn-map:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+}
+
+.report-btn-video {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.report-btn-video:hover {
+    background: linear-gradient(135deg, #df7fe9 0%, #e4465a 100%);
 }
 
 /* Report Disclaimer */
