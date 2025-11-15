@@ -45,6 +45,7 @@ const AnalyticsManager = {
 
     /**
      * Generate Events Over Time chart (line chart)
+     * Clicking a date point filters to show only that date's events
      */
     generateTimelineChart: function() {
         const events = App.state.filteredEvents;
@@ -53,7 +54,7 @@ const AnalyticsManager = {
         const eventsByDate = {};
         events.forEach(event => {
             const date = event.event_date;
-            if (date) {
+            if (date && date !== 'undefined' && date !== 'unknown') {
                 eventsByDate[date] = (eventsByDate[date] || 0) + 1;
             }
         });
@@ -116,6 +117,24 @@ const AnalyticsManager = {
                             maxTicksLimit: 20
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const selectedDate = dates[index];
+
+                        console.log('📅 Filtering to date:', selectedDate);
+
+                        // Set both start and end date to the selected date
+                        document.getElementById('startDate').value = selectedDate;
+                        document.getElementById('endDate').value = selectedDate;
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters to show only this date's events
+                        App.applyFilters();
+                    }
                 }
             }
         });
@@ -123,21 +142,17 @@ const AnalyticsManager = {
 
     /**
      * Generate Top 10 Systems chart (horizontal bar chart)
+     * Clicking a system activates that system filter
      */
     generateTopSystemsChart: function() {
         const events = App.state.filteredEvents;
 
-        // Count systems
-        const systemCounts = {};
-        events.forEach(event => {
-            if (event.__match && event.__match.group === 'system') {
-                const system = event.__match.entity;
-                systemCounts[system] = (systemCounts[system] || 0) + 1;
-            }
-        });
+        // Get counts from EntityManager (proper counting)
+        const { systemCounts } = EntityManager.getCounts(events);
 
-        // Get top 10 systems
+        // Filter out undefined/unknown and get top 10
         const sortedSystems = Object.entries(systemCounts)
+            .filter(([key, count]) => key && key !== 'undefined' && key !== 'unknown')
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10);
 
@@ -171,6 +186,16 @@ const AnalyticsManager = {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return `Events: ${context.parsed.x}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -180,6 +205,32 @@ const AnalyticsManager = {
                             precision: 0
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const selectedSystem = labels[index];
+
+                        console.log('🔧 Filtering to system:', selectedSystem);
+
+                        // Clear existing system filters and add this one
+                        EntityFilters.selectedSystems.clear();
+                        EntityFilters.selectedSystems.add(selectedSystem);
+
+                        // Update UI to show filter is active
+                        document.querySelectorAll('[data-system]').forEach(tag => {
+                            tag.classList.remove('active');
+                            if (tag.getAttribute('data-system') === selectedSystem) {
+                                tag.classList.add('active');
+                            }
+                        });
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters
+                        App.applyFilters();
+                    }
                 }
             }
         });
@@ -187,21 +238,17 @@ const AnalyticsManager = {
 
     /**
      * Generate Top 10 Units chart (horizontal bar chart)
+     * Clicking a unit activates that unit filter
      */
     generateTopUnitsChart: function() {
         const events = App.state.filteredEvents;
 
-        // Count units
-        const unitCounts = {};
-        events.forEach(event => {
-            if (event.__match && event.__match.group === 'unit') {
-                const unit = event.__match.entity;
-                unitCounts[unit] = (unitCounts[unit] || 0) + 1;
-            }
-        });
+        // Get counts from EntityManager (proper counting)
+        const { unitCounts } = EntityManager.getCounts(events);
 
-        // Get top 10 units
+        // Filter out undefined/unknown and get top 10
         const sortedUnits = Object.entries(unitCounts)
+            .filter(([key, count]) => key && key !== 'undefined' && key !== 'unknown')
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10);
 
@@ -235,6 +282,16 @@ const AnalyticsManager = {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return `Events: ${context.parsed.x}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -244,6 +301,32 @@ const AnalyticsManager = {
                             precision: 0
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const selectedUnit = labels[index];
+
+                        console.log('⚔️ Filtering to unit:', selectedUnit);
+
+                        // Clear existing unit filters and add this one
+                        EntityFilters.selectedUnits.clear();
+                        EntityFilters.selectedUnits.add(selectedUnit);
+
+                        // Update UI to show filter is active
+                        document.querySelectorAll('[data-unit]').forEach(tag => {
+                            tag.classList.remove('active');
+                            if (tag.getAttribute('data-unit') === selectedUnit) {
+                                tag.classList.add('active');
+                            }
+                        });
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters
+                        App.applyFilters();
+                    }
                 }
             }
         });
@@ -251,15 +334,16 @@ const AnalyticsManager = {
 
     /**
      * Generate Top 10 Locations chart (horizontal bar chart)
+     * Clicking a location centers the map on that location
      */
     generateTopLocationsChart: function() {
         const events = App.state.filteredEvents;
 
-        // Count locations
+        // Count locations, filtering out undefined/unknown
         const locationCounts = {};
         events.forEach(event => {
             const location = event.event_location;
-            if (location) {
+            if (location && location !== 'undefined' && location !== 'unknown' && location.toLowerCase() !== 'unknown') {
                 locationCounts[location] = (locationCounts[location] || 0) + 1;
             }
         });
@@ -299,6 +383,16 @@ const AnalyticsManager = {
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return `Events: ${context.parsed.x}`;
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -308,6 +402,31 @@ const AnalyticsManager = {
                             precision: 0
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const selectedLocation = labels[index];
+
+                        console.log('📍 Centering map on location:', selectedLocation);
+
+                        // Find an event with this location to get coordinates
+                        const eventWithLocation = events.find(e => e.event_location === selectedLocation);
+
+                        if (eventWithLocation && eventWithLocation.lat && eventWithLocation.lon) {
+                            // Close analytics modal
+                            closeModal('analyticsModal');
+
+                            // Center map on this location
+                            MapManager.map.setView(
+                                [eventWithLocation.lat, eventWithLocation.lon],
+                                10  // Zoom level
+                            );
+                        } else {
+                            console.warn('⚠️ No coordinates found for location:', selectedLocation);
+                            alert(`Location "${selectedLocation}" found but no coordinates available.`);
+                        }
+                    }
                 }
             }
         });
@@ -315,6 +434,7 @@ const AnalyticsManager = {
 
     /**
      * Generate War Crimes Distribution chart (doughnut chart)
+     * Clicking a severity segment filters events by that war crime level
      */
     generateWarCrimesChart: function() {
         const events = App.state.filteredEvents;
@@ -382,6 +502,27 @@ const AnalyticsManager = {
                             }
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const labels = ['No Indication', 'Low (1-3)', 'Medium (4-6)', 'High (7-10)'];
+                        const selectedLevel = labels[index];
+
+                        console.log('⚠️ Filtering to war crime level:', selectedLevel);
+
+                        // Enable war crime filter checkbox
+                        const warCrimeCheckbox = document.getElementById('warCrimesOnlyCheckbox');
+                        if (warCrimeCheckbox) {
+                            warCrimeCheckbox.checked = true;
+                        }
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters
+                        App.applyFilters();
+                    }
                 }
             }
         });
@@ -399,3 +540,8 @@ const AnalyticsManager = {
         });
     }
 };
+
+// Export for use in other modules
+if (typeof window !== 'undefined') {
+    window.AnalyticsManager = AnalyticsManager;
+}
