@@ -537,7 +537,16 @@ const App = {
                     UIManager.updateStats(this.state.filteredEvents, this.state);
 
                     // Check for report parameter in URL and auto-open if present
-                    UIManager.checkReportUrlParameter();
+                    console.log('🔗 About to check for report URL parameter...');
+                    try {
+                        if (typeof UIManager.checkReportUrlParameter === 'function') {
+                            UIManager.checkReportUrlParameter();
+                        } else {
+                            console.error('❌ UIManager.checkReportUrlParameter is not a function!');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error calling checkReportUrlParameter:', error);
+                    }
                 } else {
                     console.warn('⚠️ No daily reports found in raportit.csv');
                     this.state.dailyReports = [];
