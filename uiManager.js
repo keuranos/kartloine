@@ -989,16 +989,25 @@ const UIManager = {
             // Open the reports modal
             this.openReportsModal();
 
-            // Wait a brief moment for the modal to open and populate
+            // Wait for modal to be fully rendered and populated
             setTimeout(() => {
-                // Set the select dropdown to the specified date
                 const select = document.getElementById('reportDateSelect');
                 if (select) {
-                    select.value = reportDate;
-                    // Trigger the change event to show the report
-                    this.showDailyReport(reportDate);
+                    // Check if the date exists in the dropdown
+                    const option = Array.from(select.options).find(opt => opt.value === reportDate);
+                    if (option) {
+                        select.value = reportDate;
+                        // Trigger the change event to show the report
+                        this.showDailyReport(reportDate);
+                        console.log('✅ Report opened successfully');
+                    } else {
+                        console.warn('⚠️ Report date not found in dropdown:', reportDate);
+                        alert('Report for ' + reportDate + ' not found. It may be incomplete or missing.');
+                    }
+                } else {
+                    console.error('❌ Report select dropdown not found');
                 }
-            }, 100);
+            }, 500); // Increased timeout to ensure modal is fully rendered
         }
     }
 };
