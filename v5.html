@@ -88,9 +88,6 @@
         <button class="ctrl-btn feed-active" id="feedToggleBtn">
             <span style="font-size: 18px;">📱</span> Feed
         </button>
-        <button class="ctrl-btn" id="quickFilterBtn">
-            <span style="font-size: 18px;">🔥</span> Recent
-        </button>
         <button class="ctrl-btn" id="timelineToggleBtn">
             <span style="font-size: 18px;">⏱️</span> Timeline
         </button>
@@ -104,7 +101,10 @@
             <span style="font-size: 18px;">🔄</span> Reset All
         </button>
         <button class="ctrl-btn" id="legendToggleBtn">
-            <span style="font-size: 18px;">🗺️</span> Legend
+            <span style="font-size: 18px;">🗺️</span>
+        </button>
+        <button class="ctrl-btn" id="darkModeToggleBtn" onclick="UIManager.toggleDarkMode()">
+            <span style="font-size: 18px;">🌙</span>
         </button>
     </div>
 
@@ -341,21 +341,26 @@
     </div>
 
     <div id="reportsModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content reports-modal-wide">
             <div class="modal-header">
                 <h2 class="modal-title">📊 Daily Reports</h2>
                 <button class="modal-close" onclick="closeModal('reportsModal')">&times;</button>
             </div>
             <div class="report-selector">
                 <label for="reportDateSelect">Select Report Date:</label>
-                <select id="reportDateSelect" onchange="UIManager.showDailyReport(this.value)">
-                    <option value="">-- Select a date --</option>
-                </select>
+                <div class="report-selector-row">
+                    <select id="reportDateSelect" onchange="UIManager.showDailyReport(this.value)">
+                        <option value="">-- Select a date --</option>
+                    </select>
+                    <button class="report-btn report-btn-map" id="showEventsBtn" style="display: none;" onclick="showReportEvents()">
+                        <span style="font-size: 16px;">🗺️</span> Show on Map
+                    </button>
+                    <button class="report-btn report-btn-video" onclick="UIManager.openVideoModal()">
+                        <span style="font-size: 16px;">▶️</span> OSINT Videoflow
+                    </button>
+                </div>
             </div>
             <div id="reportContent" class="report-content" style="display: none;"></div>
-            <div class="modal-actions" id="reportsActions" style="display: none;">
-                <button class="modal-btn modal-btn-apply" onclick="showReportEvents()">Show Events on Map</button>
-            </div>
             <div class="report-disclaimer">
                 Reports by Vasama Advanced OSINT analysis LLM
             </div>
@@ -436,7 +441,7 @@
                         Data is updated irregularly and most surely contains some errors (ex. with datetime, geolocation) but we are getting better everyday.
                     </p>
                     <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
-                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">Vasama Systems 2025</p>
+                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">© Vasama Systems 2025</p>
                         <p style="font-size: 14px; color: #667eea;">
                             <a href="mailto:info@vasama.systems" style="color: #667eea; text-decoration: none; font-weight: 600;">info@vasama.systems</a>
                         </p>
@@ -447,6 +452,26 @@
                         <h4 style="font-size: 18px; font-weight: 600; color: #667eea; margin-bottom: 15px;">📋 Changelog</h4>
                         <div class="changelog-container">
                             <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added OSINT timeline analysis podcast player to main view</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added OSINT videoflow player to Daily Reports</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Streamlined UI</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Updated current map dataset from 1.-14.11.2025</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added dark theme</div>
+                            </div>
+                            <div class="changelog-entry">
                                 <div class="changelog-date">14-11-2025</div>
                                 <div class="changelog-message">Geolocation model updated, events after 14.11.2025 are located more precise.</div>
                             </div>
@@ -456,6 +481,24 @@
             </div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-apply" onclick="closeModal('aboutModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoModal" class="modal">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">▶️ OSINT Videoflow</h2>
+                <button class="modal-close" onclick="UIManager.closeVideoModal()">&times;</button>
+            </div>
+            <div style="padding: 0; display: flex; justify-content: center; align-items: center; background: #000;">
+                <video id="videoPlayer" controls style="max-width: 100%; max-height: 75vh;">
+                    <source src="timeline_video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="UIManager.closeVideoModal()">Close</button>
             </div>
         </div>
     </div>

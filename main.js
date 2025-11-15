@@ -121,28 +121,6 @@ const App = {
             }, 350); // Wait for CSS transition to complete
         });
 
-        // Quick filter for recent events
-        const quickFilterBtn = document.getElementById('quickFilterBtn');
-        if (quickFilterBtn) {
-            quickFilterBtn.addEventListener('click', () => {
-                const btn = document.getElementById('quickFilterBtn');
-                const isActive = btn.classList.contains('active');
-                
-                if (isActive) {
-                    // Remove filter
-                    btn.classList.remove('active');
-                    btn.innerHTML = '<span style="font-size: 18px;">🔥</span> Recent';
-                    document.getElementById('startDate').value = '';
-                } else {
-                    // Apply filter for 2024+
-                    btn.classList.add('active');
-                    btn.innerHTML = '<span style="font-size: 18px;">✓</span> Recent';
-                    document.getElementById('startDate').value = '2024-01-01';
-                }
-                
-                this.applyFilters();
-            });
-        }
 
         // Apply filters
         document.getElementById('applyFiltersBtn').addEventListener('click', () => {
@@ -1031,4 +1009,5 @@ const App = {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
+    UIManager.initDarkMode();
 });

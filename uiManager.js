@@ -3,15 +3,22 @@ const UIManager = {
     // Track which analysis sections are pinned open
     openAnalysisSections: new Set(),
 
-    // Format date to Finnish format (dd-mm-yyyy)
+    // Format date to Finnish format (dd. monthname yyyy)
     formatDateFinnish: function(dateString) {
         if (!dateString || dateString === 'N/A') return dateString;
+
+        const finnishMonths = [
+            'tammikuu', 'helmikuu', 'maaliskuu', 'huhtikuu', 'toukokuu', 'kesäkuu',
+            'heinäkuu', 'elokuu', 'syyskuu', 'lokakuu', 'marraskuu', 'joulukuu'
+        ];
 
         // Handle yyyy-mm-dd format
         const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (match) {
             const [, year, month, day] = match;
-            return `${day}-${month}-${year}`;
+            const monthIndex = parseInt(month, 10) - 1;
+            const monthName = finnishMonths[monthIndex];
+            return `${parseInt(day, 10)}. ${monthName} ${year}`;
         }
 
         return dateString; // Return as-is if format not recognized
@@ -179,13 +186,24 @@ const UIManager = {
         const dailyReports = state.dailyReports.length;
         const favoritesCount = state.favorites.size;
 
+        // Save audio player state before updating
+        const audioPlayer = document.getElementById('timelinePodcast');
+        let audioState = null;
+        if (audioPlayer) {
+            audioState = {
+                currentTime: audioPlayer.currentTime,
+                paused: audioPlayer.paused,
+                volume: audioPlayer.volume
+            };
+        }
+
         const statsHtml = `
             <div class="stat-card total" onclick="UIManager.openModal('events')">
-                <div class="label">TOTAL EVENTS</div>
+                <div class="label">EVENTS</div>
                 <div class="value">${totalEvents}</div>
             </div>
             <div class="stat-card locations" onclick="UIManager.openModal('locations')">
-                <div class="label">UNIQUE LOCATIONS</div>
+                <div class="label">LOCATIONS</div>
                 <div class="value">${locations}</div>
             </div>
             <div class="stat-card entities" onclick="UIManager.openModal('entities')">
@@ -196,11 +214,11 @@ const UIManager = {
                 <div class="label">WAR CRIMES</div>
                 <div class="value">${warCrimes}</div>
             </div>
-            <div class="stat-card total" onclick="EntityFilters.openSystemsModal()" style="background: linear-gradient(135deg, #667eea 0%, #43e97b 100%);">
+            <div class="stat-card stat-card-systems" onclick="EntityFilters.openSystemsModal()">
                 <div class="label">SYSTEMS</div>
                 <div class="value">${systemsCount}</div>
             </div>
-            <div class="stat-card locations" onclick="EntityFilters.openUnitsModal()" style="background: linear-gradient(135deg, #fa709a 0%, #764ba2 100%);">
+            <div class="stat-card stat-card-units" onclick="EntityFilters.openUnitsModal()">
                 <div class="label">UNITS</div>
                 <div class="value">${unitsCount}</div>
             </div>
@@ -221,6 +239,21 @@ const UIManager = {
         `;
 
         document.getElementById('stats').innerHTML = statsHtml;
+
+        // Restore audio player state after updating
+        if (audioState) {
+            const newAudioPlayer = document.getElementById('timelinePodcast');
+            if (newAudioPlayer) {
+                newAudioPlayer.currentTime = audioState.currentTime;
+                newAudioPlayer.volume = audioState.volume;
+                if (!audioState.paused) {
+                    // Use a promise to handle autoplay restrictions
+                    newAudioPlayer.play().catch(err => {
+                        console.log('Audio autoplay prevented:', err);
+                    });
+                }
+            }
+        }
 
         // Date range display removed - now integrated into timeline controls
     },
@@ -430,9 +463,10 @@ const UIManager = {
                 return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
             }).join('');
 
-        // Reset content and hide actions
+        // Reset content and hide Show on Map button
         document.getElementById('reportContent').style.display = 'none';
-        document.getElementById('reportsActions').style.display = 'none';
+        const showEventsBtn = document.getElementById('showEventsBtn');
+        if (showEventsBtn) showEventsBtn.style.display = 'none';
 
         modal.style.display = 'block';
     },
@@ -441,7 +475,8 @@ const UIManager = {
         // Handle empty selection
         if (!date) {
             document.getElementById('reportContent').style.display = 'none';
-            document.getElementById('reportsActions').style.display = 'none';
+            const showEventsBtn = document.getElementById('showEventsBtn');
+            if (showEventsBtn) showEventsBtn.style.display = 'none';
             return;
         }
 
@@ -455,7 +490,9 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        document.getElementById('reportsActions').style.display = 'flex';
+        // Show the "Show on Map" button
+        const showEventsBtn = document.getElementById('showEventsBtn');
+        if (showEventsBtn) showEventsBtn.style.display = 'inline-block';
 
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
@@ -849,6 +886,49 @@ const UIManager = {
                 }, 1500); // Match animation duration
             }, 500); // Wait for scroll to mostly complete
         }
+    },
+
+    toggleDarkMode: function() {
+        const body = document.body;
+        const btn = document.getElementById('darkModeToggleBtn');
+
+        if (body.classList.contains('dark-mode')) {
+            // Switch to light mode
+            body.classList.remove('dark-mode');
+            btn.innerHTML = '<span style="font-size: 18px;">🌙</span>';
+            localStorage.setItem('darkMode', 'false');
+        } else {
+            // Switch to dark mode
+            body.classList.add('dark-mode');
+            btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
+            localStorage.setItem('darkMode', 'true');
+        }
+    },
+
+    initDarkMode: function() {
+        // Check localStorage for dark mode preference
+        const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+        const btn = document.getElementById('darkModeToggleBtn');
+
+        if (darkModeEnabled) {
+            document.body.classList.add('dark-mode');
+            if (btn) btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
+        }
+    },
+
+    openVideoModal: function() {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        modal.style.display = 'block';
+        // Reset video to beginning
+        video.currentTime = 0;
+    },
+
+    closeVideoModal: function() {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        video.pause();
+        modal.style.display = 'none';
     }
 };
 
