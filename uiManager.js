@@ -983,32 +983,56 @@ const UIManager = {
         const urlParams = new URLSearchParams(window.location.search);
         const reportDate = urlParams.get('report');
 
-        if (reportDate) {
-            console.log('📅 Opening report from URL parameter:', reportDate);
+        console.log('🔍 Checking for report URL parameter...');
+        console.log('   URL params:', window.location.search);
+        console.log('   Report date param:', reportDate);
+        console.log('   Daily reports loaded:', App.state.dailyReports ? App.state.dailyReports.length : 0);
 
-            // Open the reports modal
-            this.openReportsModal();
-
-            // Wait for modal to be fully rendered and populated
-            setTimeout(() => {
-                const select = document.getElementById('reportDateSelect');
-                if (select) {
-                    // Check if the date exists in the dropdown
-                    const option = Array.from(select.options).find(opt => opt.value === reportDate);
-                    if (option) {
-                        select.value = reportDate;
-                        // Trigger the change event to show the report
-                        this.showDailyReport(reportDate);
-                        console.log('✅ Report opened successfully');
-                    } else {
-                        console.warn('⚠️ Report date not found in dropdown:', reportDate);
-                        alert('Report for ' + reportDate + ' not found. It may be incomplete or missing.');
-                    }
-                } else {
-                    console.error('❌ Report select dropdown not found');
-                }
-            }, 500); // Increased timeout to ensure modal is fully rendered
+        if (!reportDate) {
+            console.log('   No report parameter found in URL');
+            return;
         }
+
+        console.log('📅 Opening report from URL parameter:', reportDate);
+
+        // Ensure daily reports are loaded
+        if (!App.state.dailyReports || App.state.dailyReports.length === 0) {
+            console.error('❌ Daily reports not loaded yet, retrying in 500ms...');
+            setTimeout(() => this.checkReportUrlParameter(), 500);
+            return;
+        }
+
+        // Open the reports modal
+        this.openReportsModal();
+        console.log('   Modal opening triggered');
+
+        // Wait for modal to be fully rendered and populated
+        setTimeout(() => {
+            console.log('   Checking for dropdown element...');
+            const select = document.getElementById('reportDateSelect');
+
+            if (!select) {
+                console.error('❌ Report select dropdown not found after timeout');
+                alert('Error: Could not open daily reports. Please try clicking Daily Reports button manually.');
+                return;
+            }
+
+            console.log('   Dropdown found with', select.options.length, 'options');
+
+            // Check if the date exists in the dropdown
+            const option = Array.from(select.options).find(opt => opt.value === reportDate);
+
+            if (option) {
+                console.log('   Report date found in dropdown, opening report...');
+                select.value = reportDate;
+                this.showDailyReport(reportDate);
+                console.log('✅ Report opened successfully:', reportDate);
+            } else {
+                console.warn('⚠️ Report date not found in dropdown:', reportDate);
+                console.log('   Available dates:', Array.from(select.options).map(opt => opt.value).filter(v => v).join(', '));
+                alert('Report for ' + reportDate + ' not found. It may be incomplete or missing.');
+            }
+        }, 1000); // Increased timeout to 1 second for better reliability
     }
 };
 
