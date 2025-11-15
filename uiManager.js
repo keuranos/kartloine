@@ -952,13 +952,22 @@ const UIManager = {
     },
 
     initDarkMode: function() {
-        // Check localStorage for dark mode preference
-        const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+        // Check localStorage for dark mode preference, default to true (dark mode enabled)
+        const darkModePreference = localStorage.getItem('darkMode');
+        const darkModeEnabled = darkModePreference === null ? true : darkModePreference === 'true';
         const btn = document.getElementById('darkModeToggleBtn');
 
         if (darkModeEnabled) {
             document.body.classList.add('dark-mode');
             if (btn) btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
+            // Set dark mode in localStorage if not set
+            if (darkModePreference === null) {
+                localStorage.setItem('darkMode', 'true');
+            }
+            // Set map theme to dark if MapManager is available
+            if (typeof MapManager !== 'undefined' && MapManager.setMapTheme) {
+                MapManager.setMapTheme(true);
+            }
         }
     },
 
