@@ -572,7 +572,13 @@ const UIManager = {
         formattedContent = formattedContent.replace(/<p class="report-paragraph"><\/p>/g, '');
 
         // Step 7: Add interactive hyperlinks for sources, entities, and locations
-        formattedContent = HyperlinkProcessor.processDailyReportText(formattedContent, date);
+        try {
+            if (typeof HyperlinkProcessor !== 'undefined' && HyperlinkProcessor.processDailyReportText) {
+                formattedContent = HyperlinkProcessor.processDailyReportText(formattedContent, date);
+            }
+        } catch (error) {
+            console.warn('Failed to add hyperlinks to daily report:', error);
+        }
 
         content.innerHTML = `
             <div class="report-container">

@@ -105,12 +105,12 @@ const HyperlinkProcessor = {
         let processed = text;
         const entities = [];
 
-        // Collect all systems and units
+        // Collect all systems and units - only use entity names, not complex patterns
         Object.entries(EntityManager.entities.SYSTEMS || {}).forEach(([name, pattern]) => {
-            entities.push({ name, pattern, type: 'system' });
+            entities.push({ name, type: 'system' });
         });
         Object.entries(EntityManager.entities.UNITS || {}).forEach(([name, pattern]) => {
-            entities.push({ name, pattern, type: 'unit' });
+            entities.push({ name, type: 'unit' });
         });
 
         // Sort by length (longest first) to avoid partial matches
@@ -118,10 +118,10 @@ const HyperlinkProcessor = {
 
         entities.forEach(entity => {
             try {
-                // Create a regex from the entity pattern
-                // Remove parentheses from pattern and add word boundaries
-                const patternStr = entity.pattern.replace(/[()]/g, '');
-                const regex = new RegExp(`\\b(${patternStr})\\b`, 'gi');
+                // Use only the entity name for matching (case-insensitive)
+                // Escape special regex characters in the entity name
+                const escapedName = this.escapeRegex(entity.name);
+                const regex = new RegExp(`\\b(${escapedName})\\b`, 'gi');
 
                 processed = processed.replace(regex, (match) => {
                     const clickHandler = context === 'dailyReport'

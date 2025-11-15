@@ -81,7 +81,13 @@ const DataProcessor = {
         text = '<p>' + text + '</p>';
 
         // Add interactive hyperlinks for sources, entities, and locations
-        text = HyperlinkProcessor.processEventDetailText(text);
+        try {
+            if (typeof HyperlinkProcessor !== 'undefined' && HyperlinkProcessor.processEventDetailText) {
+                text = HyperlinkProcessor.processEventDetailText(text);
+            }
+        } catch (error) {
+            console.warn('Failed to add hyperlinks to event detail:', error);
+        }
 
         return text;
     }
