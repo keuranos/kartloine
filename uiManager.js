@@ -488,6 +488,8 @@ const UIManager = {
             document.getElementById('reportContent').style.display = 'none';
             const showEventsBtn = document.getElementById('showEventsBtn');
             if (showEventsBtn) showEventsBtn.style.display = 'none';
+            const dayAnalyticsBtn = document.getElementById('dayAnalyticsBtn');
+            if (dayAnalyticsBtn) dayAnalyticsBtn.style.display = 'none';
             const shareReportBtn = document.getElementById('shareReportBtn');
             if (shareReportBtn) shareReportBtn.style.display = 'none';
             return;
@@ -511,9 +513,11 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        // Show the "Show on Map" button and "Share Report" button
+        // Show the "Show on Map" button, "Day Analytics" button, and "Share Report" button
         const showEventsBtn = document.getElementById('showEventsBtn');
         if (showEventsBtn) showEventsBtn.style.display = 'inline-block';
+        const dayAnalyticsBtn = document.getElementById('dayAnalyticsBtn');
+        if (dayAnalyticsBtn) dayAnalyticsBtn.style.display = 'inline-block';
         const shareReportBtn = document.getElementById('shareReportBtn');
         if (shareReportBtn) shareReportBtn.style.display = 'inline-block';
 
@@ -995,6 +999,31 @@ const UIManager = {
             // Fallback for browsers without clipboard API
             prompt('Copy this link:', url);
         }
+    },
+
+    showDayAnalytics: function() {
+        if (!App.state.currentReport || !App.state.currentReport.date) {
+            alert('No report is currently open');
+            return;
+        }
+
+        const reportDate = App.state.currentReport.date;
+        console.log('📊 Opening analytics for date:', reportDate);
+
+        // Set date filters to show only this day
+        document.getElementById('startDate').value = reportDate;
+        document.getElementById('endDate').value = reportDate;
+
+        // Apply filters to update the map with only this day's events
+        App.applyFilters();
+
+        // Wait for filters to apply, then open analytics modal
+        setTimeout(() => {
+            // Open analytics modal which will show charts for the filtered data
+            if (typeof AnalyticsManager !== 'undefined') {
+                AnalyticsManager.openAnalyticsModal();
+            }
+        }, 300);
     },
 
     checkReportUrlParameter: function() {

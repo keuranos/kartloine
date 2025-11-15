@@ -1933,6 +1933,15 @@ body.map-moving .flag-marker {
     background: linear-gradient(135deg, #32d86a 0%, #27e8c6 100%);
 }
 
+.report-btn-analytics {
+    background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+    color: white;
+}
+
+.report-btn-analytics:hover {
+    background: linear-gradient(135deg, #feb236 0%, #f78fb3 100%);
+}
+
 .report-btn-video {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
@@ -2233,6 +2242,14 @@ body.dark-mode .report-btn-share:hover {
     background: linear-gradient(135deg, #32d86a 0%, #27e8c6 100%);
 }
 
+body.dark-mode .report-btn-analytics {
+    background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+}
+
+body.dark-mode .report-btn-analytics:hover {
+    background: linear-gradient(135deg, #feb236 0%, #f78fb3 100%);
+}
+
 body.dark-mode .report-btn-video {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
@@ -2293,25 +2310,91 @@ body.dark-mode .report-content-wrapper {
     color: #e0e0e0;
 }
 
-body.dark-mode .report-h1,
-body.dark-mode .report-h2,
-body.dark-mode .report-h3,
+body.dark-mode .report-h1 {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+body.dark-mode .report-h2 {
+    color: #667eea;
+}
+
+body.dark-mode .report-h3 {
+    color: #f093fb;
+}
+
 body.dark-mode .report-h4 {
     color: #e0e0e0;
 }
 
+body.dark-mode .report-paragraph {
+    color: #d0d0e0;
+}
+
+body.dark-mode .report-list-item {
+    color: #d0d0e0;
+}
+
+body.dark-mode .report-list-item:before {
+    color: #667eea;
+}
+
 body.dark-mode .report-table {
+    background: #1e1e2e;
     border: 1px solid #3a3a4e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .report-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 body.dark-mode .report-table th {
-    background: #3a3a4e;
-    color: #e0e0e0;
+    color: white;
 }
 
 body.dark-mode .report-table td {
     border-bottom: 1px solid #3a3a4e;
-    color: #b0b0c0;
+    color: #d0d0e0;
+}
+
+body.dark-mode .report-table tbody tr:hover {
+    background: #2a2a3e;
+}
+
+body.dark-mode .report-content-wrapper strong {
+    color: #667eea;
+}
+
+body.dark-mode .report-content-wrapper em {
+    color: #f093fb;
+}
+
+body.dark-mode .report-selector {
+    background: #2a2a3e;
+    border-color: #3a3a4e;
+}
+
+body.dark-mode .report-selector label {
+    color: #667eea;
+}
+
+body.dark-mode .report-selector select {
+    background: #1e1e2e;
+    border-color: #667eea;
+    color: #e0e0e0;
+}
+
+body.dark-mode .report-content-wrapper::-webkit-scrollbar-track {
+    background: #1e1e2e;
+}
+
+body.dark-mode .report-content-wrapper::-webkit-scrollbar-thumb {
+    background: #667eea;
+}
+
+body.dark-mode .report-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
 }
 
 body.dark-mode .changelog-container {
