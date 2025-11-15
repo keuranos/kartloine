@@ -103,6 +103,9 @@
         <button class="ctrl-btn" id="legendToggleBtn">
             <span style="font-size: 18px;">🗺️</span>
         </button>
+        <button class="ctrl-btn" id="darkModeToggleBtn" onclick="UIManager.toggleDarkMode()">
+            <span style="font-size: 18px;">🌙</span>
+        </button>
     </div>
 
     <!-- Map Legend Panel -->
@@ -352,7 +355,7 @@
                     <button class="report-btn report-btn-map" id="showEventsBtn" style="display: none;" onclick="showReportEvents()">
                         <span style="font-size: 16px;">🗺️</span> Show on Map
                     </button>
-                    <button class="report-btn report-btn-video" onclick="window.open('timeline_video.mp4', '_blank', 'width=1920,height=1080')">
+                    <button class="report-btn report-btn-video" onclick="window.open('timeline_video.mp4', '_blank')">
                         <span style="font-size: 16px;">▶️</span> OSINT Videoflow
                     </button>
                 </div>
@@ -438,7 +441,7 @@
                         Data is updated irregularly and most surely contains some errors (ex. with datetime, geolocation) but we are getting better everyday.
                     </p>
                     <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
-                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">Vasama Systems 2025</p>
+                        <p style="font-size: 16px; font-weight: 600; color: #667eea; margin-bottom: 10px;">© Vasama Systems 2025</p>
                         <p style="font-size: 14px; color: #667eea;">
                             <a href="mailto:info@vasama.systems" style="color: #667eea; text-decoration: none; font-weight: 600;">info@vasama.systems</a>
                         </p>
@@ -448,6 +451,26 @@
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
                         <h4 style="font-size: 18px; font-weight: 600; color: #667eea; margin-bottom: 15px;">📋 Changelog</h4>
                         <div class="changelog-container">
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added OSINT timeline analysis podcast player to main view</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added OSINT videoflow player to Daily Reports</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Streamlined UI</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Updated current map dataset from 1.-14.11.2025</div>
+                            </div>
+                            <div class="changelog-entry">
+                                <div class="changelog-date">15-11-2025</div>
+                                <div class="changelog-message">Added dark theme</div>
+                            </div>
                             <div class="changelog-entry">
                                 <div class="changelog-date">14-11-2025</div>
                                 <div class="changelog-message">Geolocation model updated, events after 14.11.2025 are located more precise.</div>

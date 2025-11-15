@@ -886,6 +886,34 @@ const UIManager = {
                 }, 1500); // Match animation duration
             }, 500); // Wait for scroll to mostly complete
         }
+    },
+
+    toggleDarkMode: function() {
+        const body = document.body;
+        const btn = document.getElementById('darkModeToggleBtn');
+
+        if (body.classList.contains('dark-mode')) {
+            // Switch to light mode
+            body.classList.remove('dark-mode');
+            btn.innerHTML = '<span style="font-size: 18px;">🌙</span>';
+            localStorage.setItem('darkMode', 'false');
+        } else {
+            // Switch to dark mode
+            body.classList.add('dark-mode');
+            btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
+            localStorage.setItem('darkMode', 'true');
+        }
+    },
+
+    initDarkMode: function() {
+        // Check localStorage for dark mode preference
+        const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+        const btn = document.getElementById('darkModeToggleBtn');
+
+        if (darkModeEnabled) {
+            document.body.classList.add('dark-mode');
+            if (btn) btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
+        }
     }
 };
 

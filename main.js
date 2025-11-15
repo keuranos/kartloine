@@ -1009,4 +1009,5 @@ const App = {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
+    UIManager.initDarkMode();
 });
