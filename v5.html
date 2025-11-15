@@ -94,8 +94,8 @@
         <button class="ctrl-btn" id="analyticsBtn" onclick="AnalyticsManager.openAnalyticsModal()">
             <span style="font-size: 18px;">📊</span> Analytics
         </button>
-        <button class="ctrl-btn" id="saveLoadViewBtn" onclick="UIManager.openFilterPreferencesModal()">
-            <span style="font-size: 18px;">💾</span> Save/Load View
+        <button class="ctrl-btn" id="exportBtn" onclick="ExportManager.openExportModal()">
+            <span style="font-size: 18px;">📥</span> Export
         </button>
         <button class="ctrl-btn" id="aboutBtn" onclick="UIManager.openAboutModal()">
             <span style="font-size: 18px;">ℹ️</span> About
@@ -401,31 +401,51 @@
         </div>
     </div>
 
-    <div id="filterPreferencesModal" class="modal">
-        <div class="modal-content">
+    <div id="exportModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h2 class="modal-title">💾 Save / Load Current View</h2>
-                <button class="modal-close" onclick="closeModal('filterPreferencesModal')">&times;</button>
+                <h2 class="modal-title">📥 Export & Share</h2>
+                <button class="modal-close" onclick="closeModal('exportModal')">&times;</button>
             </div>
-            <div class="modal-list">
-                <div style="padding: 20px;">
-                    <p style="margin-bottom: 15px; color: #666;">Share your current map view and active filters with this link:</p>
-                    <input type="text" id="filterShareUrl" readonly style="width: 100%; padding: 12px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-family: monospace; background: #f8f9fa;">
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="modal-btn modal-btn-apply" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
+            <div class="export-container">
+                <!-- CSV Export Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">📊 Export to CSV</h3>
+                    <p class="export-section-desc">Download the currently filtered events as a CSV file for external analysis.</p>
+                    <button class="export-action-btn" onclick="ExportManager.exportToCSV()">
+                        📥 Download CSV
+                    </button>
+                </div>
+
+                <!-- Shareable Link Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">🔗 Shareable Link</h3>
+                    <p class="export-section-desc">Share your current view with this link (preserves map position, zoom, and all active filters):</p>
+                    <input type="text" id="filterShareUrl" readonly class="export-url-input">
+                    <div class="export-button-row">
+                        <button class="export-action-btn" onclick="navigator.clipboard.writeText(document.getElementById('filterShareUrl').value).then(() => alert('✅ Link copied to clipboard!'))">
                             📋 Copy Link
                         </button>
-                        <button class="modal-btn modal-btn-clear" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
+                        <button class="export-action-btn export-action-btn-secondary" onclick="window.open(document.getElementById('filterShareUrl').value, '_blank')">
                             🔗 Open in New Tab
                         </button>
                     </div>
-                    <p style="margin-top: 20px; font-size: 13px; color: #999;">
-                        💡 This link preserves your current map position, zoom level, and active filters (Systems, Units, War Crimes).
-                    </p>
+                </div>
+
+                <!-- Filter Presets Section -->
+                <div class="export-section">
+                    <h3 class="export-section-title">💾 Filter Presets</h3>
+                    <p class="export-section-desc">Save and load your favorite filter combinations for quick access.</p>
+                    <button class="export-action-btn" onclick="ExportManager.saveFilterPreset()">
+                        💾 Save Current Filters
+                    </button>
+                    <div id="presetsListContainer" style="margin-top: 20px;">
+                        <!-- Presets list will be populated here -->
+                    </div>
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-clear" onclick="closeModal('filterPreferencesModal')">Close</button>
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('exportModal')">Close</button>
             </div>
         </div>
     </div>
@@ -593,6 +613,7 @@
     <script src="entityFilters.js"></script>
     <script src="hyperlinkProcessor.js"></script>
     <script src="analyticsManager.js"></script>
+    <script src="exportManager.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>

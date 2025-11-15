@@ -2485,3 +2485,226 @@ body.dark-mode .analytics-container::-webkit-scrollbar-track {
 body.dark-mode .analytics-container::-webkit-scrollbar-thumb {
     background: #667eea;
 }
+
+/* ===========================================
+   EXPORT & SHARE MODAL STYLES
+   =========================================== */
+
+.export-container {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.export-section {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.export-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.export-section-desc {
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.export-action-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.export-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.export-action-btn:active {
+    transform: translateY(0);
+}
+
+.export-action-btn-secondary {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    box-shadow: 0 2px 8px rgba(67, 233, 123, 0.3);
+}
+
+.export-action-btn-secondary:hover {
+    box-shadow: 0 4px 12px rgba(67, 233, 123, 0.4);
+}
+
+.export-url-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: monospace;
+    background: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+.export-button-row {
+    display: flex;
+    gap: 10px;
+}
+
+/* Filter Presets List */
+.presets-list {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.preset-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+}
+
+.preset-item:last-child {
+    border-bottom: none;
+}
+
+.preset-item:hover {
+    background: #f8f9fa;
+}
+
+.preset-info {
+    flex: 1;
+}
+
+.preset-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.preset-meta {
+    font-size: 12px;
+    color: #999;
+}
+
+.preset-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.preset-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preset-btn-apply {
+    background: #667eea;
+    color: white;
+}
+
+.preset-btn-apply:hover {
+    background: #764ba2;
+}
+
+.preset-btn-delete {
+    background: #f44336;
+    color: white;
+    padding: 8px 12px;
+}
+
+.preset-btn-delete:hover {
+    background: #d32f2f;
+}
+
+/* Dark Mode Export Styles */
+body.dark-mode .export-container {
+    background: #1a1a2e;
+}
+
+body.dark-mode .export-section {
+    background: #2a2a3e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .export-section-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .export-section-desc {
+    color: #b0b0c0;
+}
+
+body.dark-mode .export-url-input {
+    background: #1a1a2e;
+    border-color: #667eea;
+    color: #e0e0e0;
+}
+
+body.dark-mode .presets-list {
+    border-color: #3a3a4e;
+}
+
+body.dark-mode .preset-item {
+    border-bottom-color: #3a3a4e;
+}
+
+body.dark-mode .preset-item:hover {
+    background: #1a1a2e;
+}
+
+body.dark-mode .preset-name {
+    color: #e0e0e0;
+}
+
+body.dark-mode .preset-meta {
+    color: #888;
+}
+
+/* Scrollbar styling for export container */
+.export-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.export-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.export-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 4px;
+}
+
+.export-container::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
+}
+
+body.dark-mode .export-container::-webkit-scrollbar-track {
+    background: #2a2a3e;
+}
+
+body.dark-mode .export-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+}
