@@ -1961,6 +1961,28 @@ body.map-moving .flag-marker {
 }
 
 /* ========================================
+   ABOUT MODAL TEXT STYLING
+   ======================================== */
+
+.about-disclaimer-text {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.about-description-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.8;
+}
+
+.about-description-text:last-of-type {
+    margin-bottom: 30px;
+}
+
+/* ========================================
    CHANGELOG STYLING
    ======================================== */
 
@@ -1985,17 +2007,48 @@ body.map-moving .flag-marker {
     padding-bottom: 0;
 }
 
+.changelog-date-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.changelog-date-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
 .changelog-date {
     font-size: 11px;
     font-weight: 600;
     color: #667eea;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+}
+
+.changelog-messages {
+    padding-left: 15px;
 }
 
 .changelog-message {
     font-size: 12px;
     color: #333;
     line-height: 1.6;
+    margin-bottom: 4px;
+    position: relative;
+    padding-left: 12px;
+}
+
+.changelog-message:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-weight: bold;
+}
+
+.changelog-message:last-child {
+    margin-bottom: 0;
 }
 
 /* Scrollbar for changelog */
@@ -2397,11 +2450,23 @@ body.dark-mode .report-content-wrapper::-webkit-scrollbar-thumb:hover {
     background: #764ba2;
 }
 
+body.dark-mode .about-disclaimer-text {
+    color: #e0e0f0;
+}
+
+body.dark-mode .about-description-text {
+    color: #b0b0c0;
+}
+
 body.dark-mode .changelog-container {
     background: #2a2a3e;
 }
 
 body.dark-mode .changelog-entry {
+    border-bottom: 1px solid #3a3a4e;
+}
+
+body.dark-mode .changelog-date-group {
     border-bottom: 1px solid #3a3a4e;
 }
 

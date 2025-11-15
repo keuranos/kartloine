@@ -869,6 +869,11 @@ const App = {
             const favIds = favoritesParam.split(',');
             favIds.forEach(id => this.state.favorites.add(id));
             StorageManager.save(this.state.viewedEvents, this.state.favorites);
+
+            // Automatically show favorites on map when link is opened
+            console.log('🔗 Shared favorites link detected, showing', favIds.length, 'favorites on map');
+            this.state.filteredEvents = this.state.allEvents.filter(e => this.state.favorites.has(e.event_id));
+            this.render();
         }
 
         if (eventId) {
