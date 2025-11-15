@@ -338,17 +338,45 @@
                         </label>
                     </div>
                     <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-no-indication" value="no-indication">
+                        <label class="modal-item-label" for="wc-no-indication">
+                            <strong>No Indication</strong><br>
+                            <small style="color: #999;">Events without war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-low" value="low">
+                        <label class="modal-item-label" for="wc-low">
+                            <strong>Low Severity (1-3)</strong><br>
+                            <small style="color: #999;">Events with low war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-medium" value="medium">
+                        <label class="modal-item-label" for="wc-medium">
+                            <strong>Medium Severity (4-6)</strong><br>
+                            <small style="color: #999;">Events with medium war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
+                        <input type="radio" name="wcFilter" id="wc-high" value="high">
+                        <label class="modal-item-label" for="wc-high">
+                            <strong>High Severity (7-10)</strong><br>
+                            <small style="color: #999;">Events with high war crime indicators</small>
+                        </label>
+                    </div>
+                    <div class="modal-item">
                         <input type="radio" name="wcFilter" id="wc-likely" value="likely">
                         <label class="modal-item-label" for="wc-likely">
-                            <strong>Likely War Crimes</strong><br>
-                            <small style="color: #999;">Events with score ≥ 2 (treatment of persons OR civilian targets)</small>
+                            <strong>All War Crimes (Any Score)</strong><br>
+                            <small style="color: #999;">Events with any war crime indication (score ≥ 1)</small>
                         </label>
                     </div>
                     <div class="modal-item">
                         <input type="radio" name="wcFilter" id="wc-strong" value="strong">
                         <label class="modal-item-label" for="wc-strong">
-                            <strong>Strong Likely War Crimes</strong><br>
-                            <small style="color: #999;">Events with score ≥ 4 (multiple strong indicators)</small>
+                            <strong>Medium-High Combined (4-10)</strong><br>
+                            <small style="color: #999;">Events with score ≥ 4 (medium and high severity)</small>
                         </label>
                     </div>
                 </div>

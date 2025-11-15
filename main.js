@@ -723,8 +723,18 @@ const App = {
                 if (endDate && event.event_date > endDate) return false;
 
                 // War crime filter
-                if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
-                if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
+                const wcFilter = this.state.warCrimeFilter;
+                if (wcFilter !== 'all') {
+                    const hasWC = event.__wcResult && event.__wcResult.tag === 'pos';
+                    const score = hasWC ? event.__wcResult.score : 0;
+
+                    if (wcFilter === 'no-indication' && hasWC) return false;
+                    if (wcFilter === 'low' && (!hasWC || score < 1 || score > 3)) return false;
+                    if (wcFilter === 'medium' && (!hasWC || score < 4 || score > 6)) return false;
+                    if (wcFilter === 'high' && (!hasWC || score < 7)) return false;
+                    if (wcFilter === 'likely' && !hasWC) return false;
+                    if (wcFilter === 'strong' && (!hasWC || score < 4)) return false;
+                }
 
                 // Entity filters (systems & units)
                 if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;

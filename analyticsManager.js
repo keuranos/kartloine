@@ -408,23 +408,29 @@ const AnalyticsManager = {
                         const index = activeElements[0].index;
                         const selectedLocation = labels[index];
 
-                        console.log('📍 Centering map on location:', selectedLocation);
+                        console.log('📍 Filtering to location:', selectedLocation);
 
-                        // Find an event with this location to get coordinates
-                        const eventWithLocation = events.find(e => e.event_location === selectedLocation);
+                        // Add location to modal selections filter
+                        App.state.modalSelections.locations.clear();
+                        App.state.modalSelections.locations.add(selectedLocation);
 
-                        if (eventWithLocation && eventWithLocation.lat && eventWithLocation.lon) {
-                            // Close analytics modal
-                            closeModal('analyticsModal');
+                        // Close analytics modal
+                        closeModal('analyticsModal');
 
-                            // Center map on this location
-                            MapManager.map.setView(
-                                [eventWithLocation.lat, eventWithLocation.lon],
-                                10  // Zoom level
-                            );
-                        } else {
-                            console.warn('⚠️ No coordinates found for location:', selectedLocation);
-                            alert(`Location "${selectedLocation}" found but no coordinates available.`);
+                        // Apply filters to show only events from this location
+                        App.applyFilters();
+
+                        // Try to center map on the location if coordinates are available
+                        const eventWithLocation = events.find(e =>
+                            e.event_location === selectedLocation && e.lat && e.lon
+                        );
+                        if (eventWithLocation && MapManager.map) {
+                            setTimeout(() => {
+                                MapManager.map.setView(
+                                    [eventWithLocation.lat, eventWithLocation.lon],
+                                    10  // Zoom level
+                                );
+                            }, 100);
                         }
                     }
                 }
@@ -458,6 +464,15 @@ const AnalyticsManager = {
             } else {
                 noScore++;
             }
+        });
+
+        // Log distribution for debugging
+        console.log('📊 War Crimes Distribution:', {
+            'No Indication': noScore,
+            'Low (1-3)': lowScore,
+            'Medium (4-6)': mediumScore,
+            'High (7-10)': highScore,
+            'Total': events.length
         });
 
         // Destroy existing chart if it exists
@@ -506,15 +521,18 @@ const AnalyticsManager = {
                 onClick: (event, activeElements) => {
                     if (activeElements.length > 0) {
                         const index = activeElements[0].index;
-                        const labels = ['No Indication', 'Low (1-3)', 'Medium (4-6)', 'High (7-10)'];
-                        const selectedLevel = labels[index];
+                        const filterValues = ['no-indication', 'low', 'medium', 'high'];
+                        const filterLabels = ['No Indication', 'Low (1-3)', 'Medium (4-6)', 'High (7-10)'];
+                        const selectedFilter = filterValues[index];
+                        const selectedLabel = filterLabels[index];
 
-                        console.log('⚠️ Filtering to war crime level:', selectedLevel);
+                        console.log('⚠️ Filtering to war crime level:', selectedLabel);
 
-                        // Enable war crime filter checkbox
-                        const warCrimeCheckbox = document.getElementById('warCrimesOnlyCheckbox');
-                        if (warCrimeCheckbox) {
-                            warCrimeCheckbox.checked = true;
+                        // Set the appropriate radio button
+                        const radioButton = document.getElementById(`wc-${selectedFilter}`);
+                        if (radioButton) {
+                            radioButton.checked = true;
+                            App.state.warCrimeFilter = selectedFilter;
                         }
 
                         // Close analytics modal
