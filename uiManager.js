@@ -214,11 +214,11 @@ const UIManager = {
                 <div class="label">WAR CRIMES</div>
                 <div class="value">${warCrimes}</div>
             </div>
-            <div class="stat-card total" onclick="EntityFilters.openSystemsModal()" style="background: linear-gradient(135deg, #667eea 0%, #43e97b 100%);">
+            <div class="stat-card stat-card-systems" onclick="EntityFilters.openSystemsModal()">
                 <div class="label">SYSTEMS</div>
                 <div class="value">${systemsCount}</div>
             </div>
-            <div class="stat-card locations" onclick="EntityFilters.openUnitsModal()" style="background: linear-gradient(135deg, #fa709a 0%, #764ba2 100%);">
+            <div class="stat-card stat-card-units" onclick="EntityFilters.openUnitsModal()">
                 <div class="label">UNITS</div>
                 <div class="value">${unitsCount}</div>
             </div>
@@ -914,6 +914,21 @@ const UIManager = {
             document.body.classList.add('dark-mode');
             if (btn) btn.innerHTML = '<span style="font-size: 18px;">☀️</span>';
         }
+    },
+
+    openVideoModal: function() {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        modal.style.display = 'block';
+        // Reset video to beginning
+        video.currentTime = 0;
+    },
+
+    closeVideoModal: function() {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('videoPlayer');
+        video.pause();
+        modal.style.display = 'none';
     }
 };
 

@@ -355,7 +355,7 @@
                     <button class="report-btn report-btn-map" id="showEventsBtn" style="display: none;" onclick="showReportEvents()">
                         <span style="font-size: 16px;">🗺️</span> Show on Map
                     </button>
-                    <button class="report-btn report-btn-video" onclick="window.open('timeline_video.mp4', '_blank')">
+                    <button class="report-btn report-btn-video" onclick="UIManager.openVideoModal()">
                         <span style="font-size: 16px;">▶️</span> OSINT Videoflow
                     </button>
                 </div>
@@ -481,6 +481,24 @@
             </div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-apply" onclick="closeModal('aboutModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoModal" class="modal">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">▶️ OSINT Videoflow</h2>
+                <button class="modal-close" onclick="UIManager.closeVideoModal()">&times;</button>
+            </div>
+            <div style="padding: 0; display: flex; justify-content: center; align-items: center; background: #000;">
+                <video id="videoPlayer" controls style="max-width: 100%; max-height: 75vh;">
+                    <source src="timeline_video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="UIManager.closeVideoModal()">Close</button>
             </div>
         </div>
     </div>

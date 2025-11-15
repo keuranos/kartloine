@@ -77,6 +77,8 @@ body {
 .stat-card.war-crimes { background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%); color: white; }
 .stat-card.network { background: linear-gradient(135deg, #9c88ff 0%, #5f27cd 100%); color: white; }
 .stat-card.reset { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); color: white; }
+.stat-card.stat-card-systems { background: linear-gradient(135deg, #667eea 0%, #43e97b 100%); color: white; }
+.stat-card.stat-card-units { background: linear-gradient(135deg, #fa709a 0%, #764ba2 100%); color: white; }
 
 .stat-card .label {
     font-size: 9px; /* Reduced from 11px */
@@ -2025,6 +2027,14 @@ body.dark-mode .stat-card:hover {
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
 }
 
+body.dark-mode .stat-card.stat-card-systems {
+    background: linear-gradient(135deg, #4a5a6e 0%, #2a4a3e 100%);
+}
+
+body.dark-mode .stat-card.stat-card-units {
+    background: linear-gradient(135deg, #6a4a5e 0%, #4a3a4e 100%);
+}
+
 body.dark-mode .ctrl-btn {
     background: #2a2a3e;
     color: #e0e0e0;
@@ -2220,4 +2230,27 @@ body.dark-mode .changelog-entry {
 
 body.dark-mode .changelog-message {
     color: #b0b0c0;
+}
+
+body.dark-mode .feed-btn-map {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.dark-mode .feed-btn-telegram {
+    background: #2a2a3e;
+    border: 1px solid #43e97b;
+    color: #43e97b;
+}
+
+body.dark-mode .feed-btn-telegram:hover {
+    background: #43e97b;
+    color: #1a1a2e;
+}
+
+body.dark-mode .podcast-player-inline {
+    background: linear-gradient(135deg, #2a4a3e 0%, #2a4a4e 100%);
+}
+
+body.dark-mode .podcast-label-inline {
+    color: #43e97b;
 }
