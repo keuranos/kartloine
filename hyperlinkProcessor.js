@@ -106,10 +106,10 @@ const HyperlinkProcessor = {
         const entities = [];
 
         // Collect all systems and units - only use entity names, not complex patterns
-        Object.entries(EntityManager.entities.SYSTEMS || {}).forEach(([name, pattern]) => {
+        Object.entries(EntityManager.SYSTEMS || {}).forEach(([name, pattern]) => {
             entities.push({ name, type: 'system' });
         });
-        Object.entries(EntityManager.entities.UNITS || {}).forEach(([name, pattern]) => {
+        Object.entries(EntityManager.UNITS || {}).forEach(([name, pattern]) => {
             entities.push({ name, type: 'unit' });
         });
 
