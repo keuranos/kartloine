@@ -16,7 +16,11 @@ const App = {
         viewedEvents: new Set(),
         favorites: new Set(),
         dateRange: null,
-        timelineInterval: null
+        timelineInterval: null,
+        sentimentFilter: {
+            entity: '',
+            type: 'all' // 'all', 'positive', 'negative'
+        }
     },
 
     // Initialize application
@@ -54,15 +58,28 @@ const App = {
         document.getElementById('locationSearchTab').addEventListener('click', () => {
             document.getElementById('locationSearchTab').classList.add('active');
             document.getElementById('eventSearchTab').classList.remove('active');
+            document.getElementById('sentimentSearchTab').classList.remove('active');
             document.getElementById('locationSearchSection').style.display = 'block';
             document.getElementById('eventSearchSection').style.display = 'none';
+            document.getElementById('sentimentSearchSection').style.display = 'none';
         });
 
         document.getElementById('eventSearchTab').addEventListener('click', () => {
             document.getElementById('eventSearchTab').classList.add('active');
             document.getElementById('locationSearchTab').classList.remove('active');
+            document.getElementById('sentimentSearchTab').classList.remove('active');
             document.getElementById('eventSearchSection').style.display = 'block';
             document.getElementById('locationSearchSection').style.display = 'none';
+            document.getElementById('sentimentSearchSection').style.display = 'none';
+        });
+
+        document.getElementById('sentimentSearchTab').addEventListener('click', () => {
+            document.getElementById('sentimentSearchTab').classList.add('active');
+            document.getElementById('locationSearchTab').classList.remove('active');
+            document.getElementById('eventSearchTab').classList.remove('active');
+            document.getElementById('sentimentSearchSection').style.display = 'block';
+            document.getElementById('locationSearchSection').style.display = 'none';
+            document.getElementById('eventSearchSection').style.display = 'none';
         });
 
         // Location search
@@ -74,6 +91,22 @@ const App = {
         document.getElementById('locationSearchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.searchLocation();
+            }
+        });
+
+        // Sentiment filter
+        document.getElementById('applySentimentFilterBtn').addEventListener('click', () => {
+            this.applySentimentFilter();
+        });
+
+        document.getElementById('resetSentimentFilterBtn').addEventListener('click', () => {
+            this.resetSentimentFilter();
+        });
+
+        // Allow Enter key in sentiment search
+        document.getElementById('sentimentEntityInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.applySentimentFilter();
             }
         });
 
@@ -697,6 +730,41 @@ const App = {
         }
     },
 
+    applySentimentFilter: function() {
+        const entity = document.getElementById('sentimentEntityInput').value.trim();
+        const type = document.getElementById('sentimentTypeSelect').value;
+
+        if (!entity) {
+            alert('Please enter an entity name to filter by sentiment');
+            return;
+        }
+
+        this.state.sentimentFilter = { entity, type };
+
+        // Apply all filters including sentiment
+        this.applyFilters();
+
+        // Show status
+        const statusDiv = document.getElementById('sentimentFilterStatus');
+        const typeLabel = type === 'positive' ? 'positive sentiment about' :
+                         type === 'negative' ? 'negative sentiment about' :
+                         'any sentiment about';
+        statusDiv.innerHTML = `<p style="color: #667eea; padding: 10px;">🔍 Filtering events with ${typeLabel} "${entity}"</p>`;
+
+        // Close search panel
+        document.getElementById('bottomSearchPanel').classList.remove('open');
+    },
+
+    resetSentimentFilter: function() {
+        this.state.sentimentFilter = { entity: '', type: 'all' };
+        document.getElementById('sentimentEntityInput').value = '';
+        document.getElementById('sentimentTypeSelect').value = 'all';
+        document.getElementById('sentimentFilterStatus').innerHTML = '';
+
+        // Reapply filters without sentiment
+        this.applyFilters();
+    },
+
     applyFilters: function() {
         // Show loading indicator for large datasets
         if (this.state.allEvents.length > 500 && typeof PerformanceOptimizer !== 'undefined') {
@@ -734,6 +802,32 @@ const App = {
                     if (wcFilter === 'high' && (!hasWC || score < 7)) return false;
                     if (wcFilter === 'likely' && !hasWC) return false;
                     if (wcFilter === 'strong' && (!hasWC || score < 4)) return false;
+                }
+
+                // Sentiment filter
+                if (this.state.sentimentFilter.entity) {
+                    const entity = this.state.sentimentFilter.entity.toLowerCase();
+                    const type = this.state.sentimentFilter.type;
+
+                    let hasPositive = false;
+                    let hasNegative = false;
+
+                    // Check positive sentiments
+                    if (event.positive_sentiments) {
+                        const positives = event.positive_sentiments.toLowerCase();
+                        hasPositive = positives.includes(entity);
+                    }
+
+                    // Check negative sentiments
+                    if (event.negative_sentiments) {
+                        const negatives = event.negative_sentiments.toLowerCase();
+                        hasNegative = negatives.includes(entity);
+                    }
+
+                    // Apply filter based on type
+                    if (type === 'positive' && !hasPositive) return false;
+                    if (type === 'negative' && !hasNegative) return false;
+                    if (type === 'all' && !hasPositive && !hasNegative) return false;
                 }
 
                 // Entity filters (systems & units)
@@ -784,6 +878,12 @@ const App = {
             // Reset war crime filter
             this.state.warCrimeFilter = 'all';
             document.getElementById('wc-all').checked = true;
+
+            // Reset sentiment filter
+            this.state.sentimentFilter = { entity: '', type: 'all' };
+            document.getElementById('sentimentEntityInput').value = '';
+            document.getElementById('sentimentTypeSelect').value = 'all';
+            document.getElementById('sentimentFilterStatus').innerHTML = '';
 
             // Reset entity filters
             if (EntityManager.isLoaded) {

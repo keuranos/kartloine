@@ -7,7 +7,9 @@ const AnalyticsManager = {
         systems: null,
         units: null,
         locations: null,
-        warCrimes: null
+        warCrimes: null,
+        sentiments: null,
+        topics: null
     },
 
     /**
@@ -35,6 +37,8 @@ const AnalyticsManager = {
             this.generateTopUnitsChart();
             this.generateTopLocationsChart();
             this.generateWarCrimesChart();
+            this.generateSentimentsChart();
+            this.generateTopicsChart();
 
             console.log('✅ All charts generated successfully');
         } catch (error) {
@@ -541,6 +545,212 @@ const AnalyticsManager = {
 
                         // Apply filters
                         App.applyFilters();
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Generate Sentiments Chart (horizontal bar chart)
+     * Shows top 10 entities with positive sentiment (up) and negative sentiment (down)
+     */
+    generateSentimentsChart: function() {
+        const events = App.state.filteredEvents;
+
+        // Count positive and negative sentiments
+        const positiveCounts = {};
+        const negativeCounts = {};
+
+        events.forEach(event => {
+            // Parse positive sentiments
+            if (event.positive_sentiments && event.positive_sentiments.trim()) {
+                const positives = event.positive_sentiments.split(',').map(s => s.trim()).filter(s => s);
+                positives.forEach(entity => {
+                    positiveCounts[entity] = (positiveCounts[entity] || 0) + 1;
+                });
+            }
+
+            // Parse negative sentiments
+            if (event.negative_sentiments && event.negative_sentiments.trim()) {
+                const negatives = event.negative_sentiments.split(',').map(s => s.trim()).filter(s => s);
+                negatives.forEach(entity => {
+                    negativeCounts[entity] = (negativeCounts[entity] || 0) + 1;
+                });
+            }
+        });
+
+        // Get top 10 of each
+        const topPositive = Object.entries(positiveCounts)
+            .filter(([key, count]) => key && key !== 'undefined')
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+
+        const topNegative = Object.entries(negativeCounts)
+            .filter(([key, count]) => key && key !== 'undefined')
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+
+        // Combine entities (if an entity appears in both, show both bars)
+        const allEntities = new Set([...topPositive.map(e => e[0]), ...topNegative.map(e => e[0])]);
+
+        // Create data structure
+        const labels = [];
+        const positiveData = [];
+        const negativeData = [];
+
+        allEntities.forEach(entity => {
+            labels.push(entity);
+            positiveData.push(positiveCounts[entity] || 0);
+            negativeData.push(-(negativeCounts[entity] || 0)); // Negative values for down bars
+        });
+
+        // Sort by total absolute magnitude
+        const combined = labels.map((label, i) => ({
+            label,
+            positive: positiveData[i],
+            negative: negativeData[i],
+            total: Math.abs(positiveData[i]) + Math.abs(negativeData[i])
+        })).sort((a, b) => b.total - a.total).slice(0, 10);
+
+        const finalLabels = combined.map(c => c.label);
+        const finalPositive = combined.map(c => c.positive);
+        const finalNegative = combined.map(c => c.negative);
+
+        // Destroy existing chart
+        if (this.charts.sentiments) {
+            this.charts.sentiments.destroy();
+        }
+
+        // Create chart
+        const ctx = document.getElementById('sentimentsChart').getContext('2d');
+        this.charts.sentiments = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: finalLabels,
+                datasets: [
+                    {
+                        label: 'Positive Sentiment',
+                        data: finalPositive,
+                        backgroundColor: '#4caf50',
+                        borderColor: '#43a047',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Negative Sentiment',
+                        data: finalNegative,
+                        backgroundColor: '#f44336',
+                        borderColor: '#e53935',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.2,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = Math.abs(context.parsed.x);
+                                const sentiment = context.dataset.label;
+                                return `${sentiment}: ${value} events`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            callback: function(value) {
+                                return Math.abs(value); // Show absolute values on axis
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    },
+
+    /**
+     * Generate Top Topics Chart (horizontal bar chart)
+     * Shows top 10 most mentioned topics
+     */
+    generateTopicsChart: function() {
+        const events = App.state.filteredEvents;
+
+        // Count topics
+        const topicCounts = {};
+
+        events.forEach(event => {
+            if (event.osint_topics && event.osint_topics.trim()) {
+                const topics = event.osint_topics.split(',').map(t => t.trim()).filter(t => t);
+                topics.forEach(topic => {
+                    topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+                });
+            }
+        });
+
+        // Get top 10
+        const topTopics = Object.entries(topicCounts)
+            .filter(([key, count]) => key && key !== 'undefined')
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+
+        const labels = topTopics.map(item => item[0]);
+        const data = topTopics.map(item => item[1]);
+
+        // Destroy existing chart
+        if (this.charts.topics) {
+            this.charts.topics.destroy();
+        }
+
+        // Create chart
+        const ctx = document.getElementById('topicsChart').getContext('2d');
+        this.charts.topics = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Events',
+                    data: data,
+                    backgroundColor: '#9c27b0',
+                    borderColor: '#7b1fa2',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.2,
+                indexAxis: 'y',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                return `Events: ${context.parsed.x}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }

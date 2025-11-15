@@ -207,6 +207,7 @@
             <div class="search-tabs">
                 <button class="search-tab active" id="locationSearchTab">📍 Search Location</button>
                 <button class="search-tab" id="eventSearchTab">📋 Search Events</button>
+                <button class="search-tab" id="sentimentSearchTab">😊😡 Sentiment Filter</button>
             </div>
 
             <!-- Location Search -->
@@ -262,6 +263,29 @@
                     <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
                     <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
                 </div>
+            </div>
+
+            <!-- Sentiment Search -->
+            <div class="search-section" id="sentimentSearchSection" style="display: none;">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Filter by Sentiment about Entity</label>
+                        <input type="text" id="sentimentEntityInput" placeholder="Enter entity name (e.g., Russia, Ukraine, Kharkiv)">
+                    </div>
+                    <div class="filter-group" style="max-width: 200px;">
+                        <label>Sentiment Type</label>
+                        <select id="sentimentTypeSelect" class="sentiment-select">
+                            <option value="all">All Sentiments</option>
+                            <option value="positive">Positive Only</option>
+                            <option value="negative">Negative Only</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" id="applySentimentFilterBtn">Apply Sentiment Filter</button>
+                    <button class="btn btn-secondary" id="resetSentimentFilterBtn">Clear</button>
+                </div>
+                <div id="sentimentFilterStatus" class="search-results"></div>
             </div>
         </div>
     </div>
@@ -574,6 +598,17 @@
                     <div class="analytics-chart-container">
                         <h3 class="analytics-chart-title">⚠️ War Crimes Distribution</h3>
                         <canvas id="warCrimesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-row">
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">😊😡 Top Sentiments</h3>
+                        <canvas id="sentimentsChart"></canvas>
+                    </div>
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">📑 Top 10 Topics</h3>
+                        <canvas id="topicsChart"></canvas>
                     </div>
                 </div>
             </div>
