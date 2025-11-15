@@ -2812,3 +2812,42 @@ body.dark-mode .search-help-btn {
 body.dark-mode .search-help-btn:hover {
     background: #38f9d7;
 }
+
+/* ===========================================
+   PERFORMANCE OPTIMIZATION STYLES
+   Loading indicators and optimizations
+   =========================================== */
+
+/* Loading Indicator */
+.loading-indicator {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    z-index: 10000;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+/* Dark mode loading indicator */
+body.dark-mode .loading-indicator {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+}

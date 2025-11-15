@@ -698,44 +698,62 @@ const App = {
     },
 
     applyFilters: function() {
-        const searchTerm = document.getElementById('searchInput').value;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-
-        // Start with all events
-        let filtered = this.state.allEvents;
-
-        // Apply boolean search first if search term exists
-        if (searchTerm && searchTerm.trim()) {
-            filtered = SearchEnhancer.performBooleanSearch(searchTerm, filtered);
+        // Show loading indicator for large datasets
+        if (this.state.allEvents.length > 500 && typeof PerformanceOptimizer !== 'undefined') {
+            PerformanceOptimizer.showLoading('Applying filters...');
         }
 
-        // Apply other filters
-        this.state.filteredEvents = filtered.filter(event => {
-            if (startDate && event.event_date < startDate) return false;
-            if (endDate && event.event_date > endDate) return false;
+        // Use setTimeout to allow UI to update before heavy processing
+        setTimeout(() => {
+            const searchTerm = document.getElementById('searchInput').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
 
-            // War crime filter
-            if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
-            if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
+            // Start with all events
+            let filtered = this.state.allEvents;
 
-            // Entity filters (systems & units)
-            if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;
-
-            // Modal selections
-            const ms = this.state.modalSelections;
-            if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
-            if (ms.locations.size > 0 && !ms.locations.has(event.event_location)) return false;
-            if (ms.entities.size > 0) {
-                if (!event.osint_entities) return false;
-                const entities = event.osint_entities.split(',').map(ent => ent.trim());
-                if (!entities.some(entity => ms.entities.has(entity))) return false;
+            // Apply boolean search first if search term exists
+            if (searchTerm && searchTerm.trim()) {
+                filtered = SearchEnhancer.performBooleanSearch(searchTerm, filtered);
             }
 
-            return true;
-        });
+            // Apply other filters
+            this.state.filteredEvents = filtered.filter(event => {
+                if (startDate && event.event_date < startDate) return false;
+                if (endDate && event.event_date > endDate) return false;
 
-        this.render();
+                // War crime filter
+                if (this.state.warCrimeFilter === 'likely' && (!event.__wcResult || event.__wcResult.tag !== 'pos')) return false;
+                if (this.state.warCrimeFilter === 'strong' && (!event.__wcResult || event.__wcResult.score < 4)) return false;
+
+                // Entity filters (systems & units)
+                if (EntityManager.isLoaded && !EntityFilters.passesEntityFilters(event)) return false;
+
+                // Modal selections
+                const ms = this.state.modalSelections;
+                if (ms.events.size > 0 && !ms.events.has(event.event_id)) return false;
+                if (ms.locations.size > 0 && !ms.locations.has(event.event_location)) return false;
+                if (ms.entities.size > 0) {
+                    if (!event.osint_entities) return false;
+                    const entities = event.osint_entities.split(',').map(ent => ent.trim());
+                    if (!entities.some(entity => ms.entities.has(entity))) return false;
+                }
+
+                return true;
+            });
+
+            // Check for large result sets
+            if (typeof PerformanceOptimizer !== 'undefined') {
+                PerformanceOptimizer.checkLargeResultSet(this.state.filteredEvents.length);
+            }
+
+            this.render();
+
+            // Hide loading indicator
+            if (typeof PerformanceOptimizer !== 'undefined') {
+                PerformanceOptimizer.hideLoading();
+            }
+        }, 10);
     },
 
     resetAllFilters: function() {

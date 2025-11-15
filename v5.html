@@ -36,10 +36,15 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        ⏳ Loading...
+    </div>
+
     <div class="header">
         <h1>🔍 OSINT Event Database - Visual Analytics</h1>
         <div class="stats" id="stats"></div>
-        
+
         <!-- Time Range Controls - Redesigned with Manual Inputs -->
         <div class="time-slider-container" id="timeSliderContainer" style="display: none;">
             <div class="time-controls-row">
@@ -634,6 +639,7 @@
     <script src="analyticsManager.js"></script>
     <script src="exportManager.js"></script>
     <script src="searchEnhancer.js"></script>
+    <script src="performanceOptimizer.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
