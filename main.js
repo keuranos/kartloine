@@ -535,6 +535,9 @@ const App = {
 
                     // Update stats to show correct report count
                     UIManager.updateStats(this.state.filteredEvents, this.state);
+
+                    // Check for report parameter in URL and auto-open if present
+                    UIManager.checkReportUrlParameter();
                 } else {
                     console.warn('⚠️ No daily reports found in raportit.csv');
                     this.state.dailyReports = [];

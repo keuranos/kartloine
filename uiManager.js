@@ -976,6 +976,30 @@ const UIManager = {
             // Fallback for browsers without clipboard API
             prompt('Copy this link:', url);
         }
+    },
+
+    checkReportUrlParameter: function() {
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportDate = urlParams.get('report');
+
+        if (reportDate) {
+            console.log('📅 Opening report from URL parameter:', reportDate);
+
+            // Open the reports modal
+            this.openReportsModal();
+
+            // Wait a brief moment for the modal to open and populate
+            setTimeout(() => {
+                // Set the select dropdown to the specified date
+                const select = document.getElementById('reportDateSelect');
+                if (select) {
+                    select.value = reportDate;
+                    // Trigger the change event to show the report
+                    this.showDailyReport(reportDate);
+                }
+            }, 100);
+        }
     }
 };
 
