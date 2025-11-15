@@ -571,6 +571,9 @@ const UIManager = {
         // Clean up empty paragraphs
         formattedContent = formattedContent.replace(/<p class="report-paragraph"><\/p>/g, '');
 
+        // Step 7: Add interactive hyperlinks for sources, entities, and locations
+        formattedContent = HyperlinkProcessor.processDailyReportText(formattedContent, date);
+
         content.innerHTML = `
             <div class="report-container">
                 <div class="report-header">

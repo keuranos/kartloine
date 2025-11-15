@@ -2291,3 +2291,114 @@ body.dark-mode .podcast-player-inline {
 body.dark-mode .podcast-label-inline {
     color: #43e97b;
 }
+
+/* ===========================================
+   HYPERLINK STYLES
+   Interactive links for sources, entities, and locations
+   =========================================== */
+
+/* Source Links (Telegram channels) */
+.source-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+    padding: 2px 0;
+}
+
+.source-link:hover {
+    color: #764ba2;
+    border-bottom: 2px solid #764ba2;
+}
+
+.source-link::before {
+    content: "📱 ";
+    font-size: 0.9em;
+}
+
+/* Entity Links (Systems and Units) */
+.entity-link {
+    color: #f093fb;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 2px dashed transparent;
+    transition: all 0.3s;
+    padding: 2px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.entity-link:hover {
+    background: rgba(240, 147, 251, 0.15);
+    border-bottom: 2px dashed #f5576c;
+}
+
+.entity-system::before {
+    content: "🔧 ";
+    font-size: 0.9em;
+}
+
+.entity-unit::before {
+    content: "⚔️ ";
+    font-size: 0.9em;
+}
+
+/* Location Links */
+.location-link {
+    color: #43e97b;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 2px dotted transparent;
+    transition: all 0.3s;
+    padding: 2px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.location-link:hover {
+    background: rgba(67, 233, 123, 0.15);
+    border-bottom: 2px dotted #38f9d7;
+}
+
+.location-link::before {
+    content: "📍 ";
+    font-size: 0.9em;
+}
+
+/* Dark Mode Hyperlink Styles */
+body.dark-mode .source-link {
+    color: #9aa5ff;
+}
+
+body.dark-mode .source-link:hover {
+    color: #b4a0ff;
+    border-bottom-color: #b4a0ff;
+}
+
+body.dark-mode .entity-link {
+    color: #ff9fff;
+}
+
+body.dark-mode .entity-link:hover {
+    background: rgba(255, 159, 255, 0.2);
+    border-bottom-color: #ff85a1;
+}
+
+body.dark-mode .location-link {
+    color: #5fffa7;
+}
+
+body.dark-mode .location-link:hover {
+    background: rgba(95, 255, 167, 0.2);
+    border-bottom-color: #6bffe5;
+}
+
+/* Link hover animation */
+.source-link, .entity-link, .location-link {
+    position: relative;
+}
+
+.source-link:active, .entity-link:active, .location-link:active {
+    transform: scale(0.98);
+}
