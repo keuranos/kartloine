@@ -3,15 +3,22 @@ const UIManager = {
     // Track which analysis sections are pinned open
     openAnalysisSections: new Set(),
 
-    // Format date to Finnish format (dd-mm-yyyy)
+    // Format date to Finnish format (dd. monthname yyyy)
     formatDateFinnish: function(dateString) {
         if (!dateString || dateString === 'N/A') return dateString;
+
+        const finnishMonths = [
+            'tammikuu', 'helmikuu', 'maaliskuu', 'huhtikuu', 'toukokuu', 'kesäkuu',
+            'heinäkuu', 'elokuu', 'syyskuu', 'lokakuu', 'marraskuu', 'joulukuu'
+        ];
 
         // Handle yyyy-mm-dd format
         const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (match) {
             const [, year, month, day] = match;
-            return `${day}-${month}-${year}`;
+            const monthIndex = parseInt(month, 10) - 1;
+            const monthName = finnishMonths[monthIndex];
+            return `${parseInt(day, 10)}. ${monthName} ${year}`;
         }
 
         return dateString; // Return as-is if format not recognized
@@ -181,11 +188,11 @@ const UIManager = {
 
         const statsHtml = `
             <div class="stat-card total" onclick="UIManager.openModal('events')">
-                <div class="label">TOTAL EVENTS</div>
+                <div class="label">EVENTS</div>
                 <div class="value">${totalEvents}</div>
             </div>
             <div class="stat-card locations" onclick="UIManager.openModal('locations')">
-                <div class="label">UNIQUE LOCATIONS</div>
+                <div class="label">LOCATIONS</div>
                 <div class="value">${locations}</div>
             </div>
             <div class="stat-card entities" onclick="UIManager.openModal('entities')">
