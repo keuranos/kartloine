@@ -91,6 +91,9 @@
         <button class="ctrl-btn" id="timelineToggleBtn">
             <span style="font-size: 18px;">⏱️</span> Timeline
         </button>
+        <button class="ctrl-btn" id="analyticsBtn" onclick="AnalyticsManager.openAnalyticsModal()">
+            <span style="font-size: 18px;">📊</span> Analytics
+        </button>
         <button class="ctrl-btn" id="saveLoadViewBtn" onclick="UIManager.openFilterPreferencesModal()">
             <span style="font-size: 18px;">💾</span> Save/Load View
         </button>
@@ -427,6 +430,48 @@
         </div>
     </div>
 
+    <div id="analyticsModal" class="modal">
+        <div class="modal-content" style="max-width: 1400px; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 Analytics Dashboard</h2>
+                <button class="modal-close" onclick="closeModal('analyticsModal')">&times;</button>
+            </div>
+            <div class="analytics-container">
+                <!-- Events Timeline Chart -->
+                <div class="analytics-chart-container">
+                    <h3 class="analytics-chart-title">📈 Events Over Time</h3>
+                    <canvas id="timelineChart"></canvas>
+                </div>
+
+                <!-- Two columns for smaller charts -->
+                <div class="analytics-row">
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">🔧 Top 10 Systems</h3>
+                        <canvas id="systemsChart"></canvas>
+                    </div>
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">⚔️ Top 10 Units</h3>
+                        <canvas id="unitsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-row">
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">📍 Top 10 Locations</h3>
+                        <canvas id="locationsChart"></canvas>
+                    </div>
+                    <div class="analytics-chart-container">
+                        <h3 class="analytics-chart-title">⚠️ War Crimes Distribution</h3>
+                        <canvas id="warCrimesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-clear" onclick="closeModal('analyticsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="aboutModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -538,6 +583,7 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Application Modules -->
     <script src="warCrimeDetector.js"></script>
@@ -546,6 +592,7 @@
     <script src="entities.js"></script>
     <script src="entityFilters.js"></script>
     <script src="hyperlinkProcessor.js"></script>
+    <script src="analyticsManager.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>
