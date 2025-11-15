@@ -552,8 +552,9 @@ const AnalyticsManager = {
     },
 
     /**
-     * Generate Sentiments Chart (horizontal bar chart)
+     * Generate Sentiments Chart (vertical bar chart)
      * Shows top 10 entities with positive sentiment (up) and negative sentiment (down)
+     * Positive and negative bars are adjacent for the same entity
      */
     generateSentimentsChart: function() {
         const events = App.state.filteredEvents;
@@ -580,42 +581,25 @@ const AnalyticsManager = {
             }
         });
 
-        // Get top 10 of each
-        const topPositive = Object.entries(positiveCounts)
-            .filter(([key, count]) => key && key !== 'undefined')
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10);
+        // Get all unique entities from both positive and negative
+        const allEntities = new Set([
+            ...Object.keys(positiveCounts),
+            ...Object.keys(negativeCounts)
+        ]);
 
-        const topNegative = Object.entries(negativeCounts)
-            .filter(([key, count]) => key && key !== 'undefined')
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10);
+        // Create combined data and sort by total absolute count
+        const combined = Array.from(allEntities).map(entity => ({
+            entity,
+            positive: positiveCounts[entity] || 0,
+            negative: negativeCounts[entity] || 0,
+            total: (positiveCounts[entity] || 0) + (negativeCounts[entity] || 0)
+        })).filter(item => item.entity && item.entity !== 'undefined')
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10);
 
-        // Combine entities (if an entity appears in both, show both bars)
-        const allEntities = new Set([...topPositive.map(e => e[0]), ...topNegative.map(e => e[0])]);
-
-        // Create data structure
-        const labels = [];
-        const positiveData = [];
-        const negativeData = [];
-
-        allEntities.forEach(entity => {
-            labels.push(entity);
-            positiveData.push(positiveCounts[entity] || 0);
-            negativeData.push(-(negativeCounts[entity] || 0)); // Negative values for down bars
-        });
-
-        // Sort by total absolute magnitude
-        const combined = labels.map((label, i) => ({
-            label,
-            positive: positiveData[i],
-            negative: negativeData[i],
-            total: Math.abs(positiveData[i]) + Math.abs(negativeData[i])
-        })).sort((a, b) => b.total - a.total).slice(0, 10);
-
-        const finalLabels = combined.map(c => c.label);
-        const finalPositive = combined.map(c => c.positive);
-        const finalNegative = combined.map(c => c.negative);
+        const labels = combined.map(c => c.entity);
+        const positiveData = combined.map(c => c.positive);
+        const negativeData = combined.map(c => -c.negative); // Negative values for down bars
 
         // Destroy existing chart
         if (this.charts.sentiments) {
@@ -627,18 +611,18 @@ const AnalyticsManager = {
         this.charts.sentiments = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: finalLabels,
+                labels: labels,
                 datasets: [
                     {
-                        label: 'Positive Sentiment',
-                        data: finalPositive,
+                        label: 'Positive',
+                        data: positiveData,
                         backgroundColor: '#4caf50',
                         borderColor: '#43a047',
                         borderWidth: 1
                     },
                     {
-                        label: 'Negative Sentiment',
-                        data: finalNegative,
+                        label: 'Negative',
+                        data: negativeData,
                         backgroundColor: '#f44336',
                         borderColor: '#e53935',
                         borderWidth: 1
@@ -648,8 +632,7 @@ const AnalyticsManager = {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 1.2,
-                indexAxis: 'y',
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         display: true,
@@ -658,29 +641,105 @@ const AnalyticsManager = {
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const value = Math.abs(context.parsed.x);
+                                const value = Math.abs(context.parsed.y);
                                 const sentiment = context.dataset.label;
                                 return `${sentiment}: ${value} events`;
                             }
                         }
+                    },
+                    datalabels: {
+                        display: true,
+                        align: function(context) {
+                            return context.parsed.y >= 0 ? 'top' : 'bottom';
+                        },
+                        anchor: function(context) {
+                            return context.parsed.y >= 0 ? 'end' : 'start';
+                        },
+                        formatter: function(value) {
+                            const absValue = Math.abs(value);
+                            return absValue > 0 ? (value >= 0 ? `+${absValue}` : `-${absValue}`) : '';
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10
+                        }
                     }
                 },
                 scales: {
-                    x: {
+                    y: {
                         ticks: {
                             callback: function(value) {
                                 return Math.abs(value); // Show absolute values on axis
                             }
+                        },
+                        grid: {
+                            color: function(context) {
+                                if (context.tick.value === 0) {
+                                    return '#000'; // Bold line at 0
+                                }
+                                return '#e0e0e0';
+                            },
+                            lineWidth: function(context) {
+                                if (context.tick.value === 0) {
+                                    return 2;
+                                }
+                                return 1;
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
                         }
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const datasetIndex = activeElements[0].datasetIndex;
+                        const entity = labels[index];
+                        const sentimentType = datasetIndex === 0 ? 'positive' : 'negative';
+
+                        console.log(`😊😡 Filtering to ${sentimentType} sentiment about:`, entity);
+
+                        // Set sentiment filter
+                        App.state.sentimentFilter = { entity, type: sentimentType };
+
+                        // Update UI inputs
+                        document.getElementById('sentimentEntityInput').value = entity;
+                        document.getElementById('sentimentTypeSelect').value = sentimentType;
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters
+                        App.applyFilters();
+
+                        // Open sentiment analysis in side panel
+                        setTimeout(() => {
+                            const event = App.state.filteredEvents[0];
+                            if (event) {
+                                App.showEventDetails(event);
+                                // Switch to sentiment analysis tab if it exists
+                                const sentimentTab = document.querySelector('[data-tab="sentiment"]');
+                                if (sentimentTab) {
+                                    sentimentTab.click();
+                                }
+                            }
+                        }, 100);
+                    }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     },
 
     /**
-     * Generate Top Topics Chart (horizontal bar chart)
+     * Generate Top Topics Chart (vertical bar chart)
      * Shows top 10 most mentioned topics
+     * Clickable to filter events by topic
      */
     generateTopicsChart: function() {
         const events = App.state.filteredEvents;
@@ -728,8 +787,7 @@ const AnalyticsManager = {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 1.2,
-                indexAxis: 'y',
+                aspectRatio: 1.5,
                 plugins: {
                     legend: {
                         display: false
@@ -740,20 +798,57 @@ const AnalyticsManager = {
                                 return context[0].label;
                             },
                             label: function(context) {
-                                return `Events: ${context.parsed.x}`;
+                                return `Events: ${context.parsed.y}`;
                             }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        align: 'top',
+                        anchor: 'end',
+                        formatter: function(value) {
+                            return value;
+                        },
+                        color: '#333',
+                        font: {
+                            weight: 'bold',
+                            size: 10
                         }
                     }
                 },
                 scales: {
-                    x: {
+                    y: {
                         beginAtZero: true,
                         ticks: {
                             precision: 0
                         }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const topic = labels[index];
+
+                        console.log('📑 Filtering to topic:', topic);
+
+                        // Set search to filter by topic
+                        document.getElementById('searchInput').value = topic;
+
+                        // Close analytics modal
+                        closeModal('analyticsModal');
+
+                        // Apply filters
+                        App.applyFilters();
                     }
                 }
-            }
+            },
+            plugins: [ChartDataLabels]
         });
     },
 
@@ -816,6 +911,52 @@ const AnalyticsManager = {
             this.generateAllCharts();
             console.log('✅ Filters reset and analytics refreshed');
         }, 200);
+    },
+
+    /**
+     * Share current analytics dashboard state
+     */
+    shareAnalyticsDashboard: function() {
+        const baseUrl = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams();
+
+        // Add current filter state
+        const searchTerm = document.getElementById('searchInput').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (searchTerm) params.set('search', searchTerm);
+        if (startDate) params.set('start', startDate);
+        if (endDate) params.set('end', endDate);
+        if (App.state.warCrimeFilter !== 'all') params.set('wc', App.state.warCrimeFilter);
+        if (App.state.sentimentFilter.entity) {
+            params.set('sentiment_entity', App.state.sentimentFilter.entity);
+            params.set('sentiment_type', App.state.sentimentFilter.type);
+        }
+
+        // Add selected systems
+        if (typeof EntityFilters !== 'undefined' && EntityFilters.selectedSystems.size > 0) {
+            params.set('systems', Array.from(EntityFilters.selectedSystems).join(','));
+        }
+
+        // Add selected units
+        if (typeof EntityFilters !== 'undefined' && EntityFilters.selectedUnits.size > 0) {
+            params.set('units', Array.from(EntityFilters.selectedUnits).join(','));
+        }
+
+        // Add analytics flag
+        params.set('analytics', 'true');
+
+        const url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+
+        // Copy to clipboard
+        navigator.clipboard.writeText(url).then(() => {
+            alert('📊 Analytics dashboard link copied to clipboard!\n\nAnyone with this link will see the same filtered view and can open the analytics dashboard.');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            // Fallback: show the URL in a prompt
+            prompt('Copy this analytics dashboard link:', url);
+        });
     }
 };
 

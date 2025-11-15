@@ -925,10 +925,31 @@ const App = {
         const lngParam = urlParams.get('lng');
         const systemsParam = urlParams.get('systems');
         const unitsParam = urlParams.get('units');
-        const wcFilterParam = urlParams.get('wcFilter');
+        const wcFilterParam = urlParams.get('wcFilter') || urlParams.get('wc');
         const favoritesParam = urlParams.get('favorites');
+        const searchParam = urlParams.get('search');
+        const startParam = urlParams.get('start');
+        const endParam = urlParams.get('end');
+        const sentimentEntityParam = urlParams.get('sentiment_entity');
+        const sentimentTypeParam = urlParams.get('sentiment_type');
+        const analyticsParam = urlParams.get('analytics');
 
         // Apply filter preferences from URL
+        if (searchParam) {
+            document.getElementById('searchInput').value = searchParam;
+            console.log('🔍 Loaded search filter:', searchParam);
+        }
+
+        if (startParam) {
+            document.getElementById('startDate').value = startParam;
+            console.log('📅 Loaded start date:', startParam);
+        }
+
+        if (endParam) {
+            document.getElementById('endDate').value = endParam;
+            console.log('📅 Loaded end date:', endParam);
+        }
+
         if (systemsParam && EntityManager.isLoaded) {
             const systems = systemsParam.split(',');
             systems.forEach(s => EntityFilters.selectedSystems.add(s));
@@ -943,12 +964,30 @@ const App = {
 
         if (wcFilterParam) {
             this.state.warCrimeFilter = wcFilterParam;
+            const radioBtn = document.getElementById(`wc-${wcFilterParam}`);
+            if (radioBtn) radioBtn.checked = true;
             console.log('🔧 Loaded war crime filter:', wcFilterParam);
         }
 
+        if (sentimentEntityParam) {
+            this.state.sentimentFilter.entity = sentimentEntityParam;
+            this.state.sentimentFilter.type = sentimentTypeParam || 'all';
+            document.getElementById('sentimentEntityInput').value = sentimentEntityParam;
+            document.getElementById('sentimentTypeSelect').value = sentimentTypeParam || 'all';
+            console.log('😊😡 Loaded sentiment filter:', sentimentEntityParam, sentimentTypeParam);
+        }
+
         // Apply filters if any were loaded
-        if (systemsParam || unitsParam || wcFilterParam) {
+        if (systemsParam || unitsParam || wcFilterParam || searchParam || startParam || endParam || sentimentEntityParam) {
             this.applyFilters();
+        }
+
+        // Open analytics modal if requested
+        if (analyticsParam === 'true') {
+            setTimeout(() => {
+                console.log('📊 Auto-opening analytics dashboard from URL');
+                AnalyticsManager.openAnalyticsModal();
+            }, 1000);
         }
 
         // Set map view from URL
