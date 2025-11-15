@@ -463,10 +463,12 @@ const UIManager = {
                 return `<option value="${date}">📅 ${this.formatDateFinnish(date)} (${reports.length} report${reports.length > 1 ? 's' : ''})</option>`;
             }).join('');
 
-        // Reset content and hide Show on Map button
+        // Reset content and hide Show on Map button and Share button
         document.getElementById('reportContent').style.display = 'none';
         const showEventsBtn = document.getElementById('showEventsBtn');
         if (showEventsBtn) showEventsBtn.style.display = 'none';
+        const shareReportBtn = document.getElementById('shareReportBtn');
+        if (shareReportBtn) shareReportBtn.style.display = 'none';
 
         modal.style.display = 'block';
     },
@@ -477,6 +479,8 @@ const UIManager = {
             document.getElementById('reportContent').style.display = 'none';
             const showEventsBtn = document.getElementById('showEventsBtn');
             if (showEventsBtn) showEventsBtn.style.display = 'none';
+            const shareReportBtn = document.getElementById('shareReportBtn');
+            if (shareReportBtn) shareReportBtn.style.display = 'none';
             return;
         }
 
@@ -490,9 +494,11 @@ const UIManager = {
         App.state.currentReport = report;
         App.state.currentReport.date = date; // Store the date for filtering
 
-        // Show the "Show on Map" button
+        // Show the "Show on Map" button and "Share Report" button
         const showEventsBtn = document.getElementById('showEventsBtn');
         if (showEventsBtn) showEventsBtn.style.display = 'inline-block';
+        const shareReportBtn = document.getElementById('shareReportBtn');
+        if (shareReportBtn) shareReportBtn.style.display = 'inline-block';
 
         const content = document.getElementById('reportContent');
         content.style.display = 'block';
@@ -929,6 +935,30 @@ const UIManager = {
         const video = document.getElementById('videoPlayer');
         video.pause();
         modal.style.display = 'none';
+    },
+
+    shareReport: function() {
+        if (!App.state.currentReport || !App.state.currentReport.date) {
+            alert('No report is currently open');
+            return;
+        }
+
+        const reportDate = App.state.currentReport.date;
+        const url = `${window.location.origin}${window.location.pathname}?report=${reportDate}`;
+
+        // Try to copy to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Report link copied to clipboard!\n\n' + url);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback: show the URL in a prompt
+                prompt('Copy this link:', url);
+            });
+        } else {
+            // Fallback for browsers without clipboard API
+            prompt('Copy this link:', url);
+        }
     }
 };
 

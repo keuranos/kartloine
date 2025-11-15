@@ -1911,6 +1911,15 @@ body.map-moving .flag-marker {
     background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
 }
 
+.report-btn-share {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.report-btn-share:hover {
+    background: linear-gradient(135deg, #32d86a 0%, #27e8c6 100%);
+}
+
 .report-btn-video {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
