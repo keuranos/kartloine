@@ -186,8 +186,13 @@
             <div class="search-section" id="eventSearchSection" style="display: none;">
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>Search Events</label>
-                        <input type="text" id="searchInput" placeholder="Search by name, location, or description...">
+                        <label>
+                            Search Events
+                            <button class="search-help-btn" onclick="SearchEnhancer.showSearchHelp()" title="Show search syntax help">
+                                ❓
+                            </button>
+                        </label>
+                        <input type="text" id="searchInput" placeholder="Try: kinzhal AND kharkiv, drone OR missile, etc...">
                     </div>
                     <div class="filter-group" style="max-width: 200px;">
                         <label>Start Date</label>
@@ -198,6 +203,20 @@
                         <input type="date" id="endDate">
                     </div>
                 </div>
+
+                <!-- Date Range Presets -->
+                <div class="date-presets">
+                    <span class="date-presets-label">Quick Ranges:</span>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('today')">Today</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('yesterday')">Yesterday</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('last7days')">Last 7 Days</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('last30days')">Last 30 Days</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('thisMonth')">This Month</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('lastMonth')">Last Month</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('thisYear')">This Year</button>
+                    <button class="date-preset-btn" onclick="SearchEnhancer.applyDatePreset('all')">All Time</button>
+                </div>
+
                 <div class="filter-actions">
                     <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
                     <button class="btn btn-secondary" id="resetFiltersBtn">Reset All Filters</button>
@@ -614,6 +633,7 @@
     <script src="hyperlinkProcessor.js"></script>
     <script src="analyticsManager.js"></script>
     <script src="exportManager.js"></script>
+    <script src="searchEnhancer.js"></script>
     <script src="mapManager.js"></script>
     <script src="uiManager.js"></script>
     <script src="main.js"></script>

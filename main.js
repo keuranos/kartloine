@@ -698,12 +698,20 @@ const App = {
     },
 
     applyFilters: function() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const searchTerm = document.getElementById('searchInput').value;
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
-        this.state.filteredEvents = this.state.allEvents.filter(event => {
-            if (searchTerm && !JSON.stringify(event).toLowerCase().includes(searchTerm)) return false;
+        // Start with all events
+        let filtered = this.state.allEvents;
+
+        // Apply boolean search first if search term exists
+        if (searchTerm && searchTerm.trim()) {
+            filtered = SearchEnhancer.performBooleanSearch(searchTerm, filtered);
+        }
+
+        // Apply other filters
+        this.state.filteredEvents = filtered.filter(event => {
             if (startDate && event.event_date < startDate) return false;
             if (endDate && event.event_date > endDate) return false;
 
